@@ -1,0 +1,136 @@
+/* Guide — GUIDE.TXT content and its window chrome (task 18).
+ *
+ * Scoped under `.guide` only, so nothing here leaks onto the rest of the
+ * app. This is a fallback: task 15 ships the real `.win` / `.win__bar` /
+ * `.win__title` / `.win__close` / `.win__body` chrome, and its rules take
+ * over once that file loads after this one. Geist Pixel only, per spec —
+ * the app's other legal-style pages default to Libre Franklin, this one
+ * does not.
+ */
+
+.guide,
+.guide .win__bar,
+.guide .win__title,
+.guide .win__close,
+.guide .win__body,
+.guide .guide__section,
+.guide .guide__title,
+.guide .guide__paragraph,
+.guide .guide__table {
+  font-family: var(--font-ui), sans-serif;
+}
+
+.guide.win {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  width: min(40rem, calc(100vw - 2rem));
+  max-height: min(34rem, calc(100vh - 2rem));
+  background: var(--void);
+  border: 1px solid var(--red);
+  color: var(--chalk);
+}
+
+.guide.win[hidden] {
+  display: none;
+}
+
+.guide .win__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 0.6rem 0.9rem;
+  background: var(--graphite);
+  border-bottom: 1px solid var(--red);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+
+.guide .win__title {
+  color: var(--chalk);
+}
+
+.guide .win__close {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--gunmetal);
+  color: var(--chalk);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+}
+
+.guide .win__close:hover,
+.guide .win__close:focus-visible {
+  border-color: var(--red-text);
+  color: var(--red-text);
+}
+
+.guide .win__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.1rem 1.25rem 1.5rem;
+}
+
+.guide .guide__section + .guide__section {
+  margin-top: 1.75rem;
+}
+
+.guide .guide__title {
+  font-weight: normal;
+  font-size: 1rem;
+  color: var(--chalk);
+  border-left: 2px solid var(--red);
+  padding-left: 0.65rem;
+  margin: 0 0 0.75rem;
+}
+
+.guide .guide__paragraph {
+  color: var(--haze);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin: 0 0 0.75rem;
+}
+
+.guide .guide__table-wrap {
+  overflow-x: auto;
+  margin: 0 0 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.guide .guide__table {
+  width: 100%;
+  min-width: 34rem;
+  border-collapse: collapse;
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.guide .guide__table th,
+.guide .guide__table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--graphite);
+}
+
+.guide .guide__table th {
+  color: var(--chalk);
+  font-weight: normal;
+  border-bottom: 1px solid var(--red);
+}
+
+.guide .guide__table td {
+  color: var(--haze);
+}
+
+/* guide.html's own page chrome (h1, nav, skip-link) comes from legal.css;
+   this table skin still applies inside `.page .guide`. */
+.page .guide .guide__table {
+  margin-top: 0;
+}

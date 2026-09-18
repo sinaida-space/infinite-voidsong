@@ -19,6 +19,7 @@ import { mountTimer } from './ui/timer';
 import { mountToast } from './ui/ritual';
 import { mountBanner } from './ui/banner';
 import { mountFooter } from './ui/footer';
+import { mountGuide, openGuide } from './ui/guide';
 
 function el(id: string): HTMLElement {
   const found = document.getElementById(id);
@@ -41,6 +42,13 @@ mountBanner(el('banner'), {
   onDismiss: () => store.set({ noticeDismissed: true }),
 });
 mountFooter(el('footer'));
+mountGuide(el('guide'));
+
+// Exposed for task 15's GUIDE button / `?` key, and reachable from the dev
+// console in the meantime: `openGuide()`.
+if (import.meta.env.DEV) {
+  (window as unknown as { openGuide: typeof openGuide }).openGuide = openGuide;
+}
 
 // --- audio engine: created lazily on the first play (a real user gesture) ------
 
