@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guide · Infinite Voidsong</title>
+  <meta name="description" content="What the sessions are, which preset fits which work, what each sound does, how loud to go, and what Focus Boost and Tone are." />
+  <meta name="robots" content="index, follow" />
+  <link rel="stylesheet" href="/src/styles/tokens.css" />
+  <link rel="stylesheet" href="/src/styles/legal.css" />
+  <link rel="stylesheet" href="/src/styles/guide.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main id="main" class="page">
+    <nav class="page__nav"><a href="/">← Infinite Voidsong</a></nav>
+    <h1>Guide</h1>
+    <p class="page__meta">What to use, and why, in about two minutes.</p>
+
+    <div id="guide-content" class="guide"></div>
+  </main>
+  <div id="footer-root"></div>
+  <script type="module" src="/src/ui/footer.ts"></script>
+  <script type="module">
+    import { renderGuideSections } from '/src/content/guide.ts';
+    const root = document.getElementById('guide-content');
+    if (root) renderGuideSections(root);
+  </script>
+</body>
+</html>
