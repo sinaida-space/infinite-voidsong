@@ -19,6 +19,7 @@ uniform float uBeat;         // 1 on a kick, decays to 0 over 300 ms
 uniform vec3  uLineColor;    // wall hue near the viewer (family blend, music per source)
 uniform vec3  uLineColorFar; // wall hue deep in the tunnel (differs only for two-tone sources)
 uniform float uLineBright;   // line brightness after rms modulation, never above 0.85
+uniform vec2  uLobe;         // per-ring lobes: x amplitude gain (mid band, smoothed), y drift phase (low band)
 uniform float uGrain;        // grain amount, noise family only
 uniform float uWidthAdd;     // extra line width from the beat, music family only
 uniform float uDpr;          // device pixel ratio actually rendered at
@@ -44,9 +45,24 @@ const float ROLL_DEG = 4.0;       // ±4° roll
 const float ROLL_HZ = 0.01;
 
 // Organic walls: noise displaces the ring coordinate (radial undulation) and the angle.
-const float WARP_RING = 0.14;     // ring displacement in ring units (0.05..0.15 per spec)
-const float WARP_ANGLE = 0.09;    // angular displacement in radians
+const float WARP_RING = 0.035;    // ring displacement in ring units: a slight variation only
+const float WARP_ANGLE = 0.022;   // angular displacement in radians
+const float WARP_CLAMP = 0.2;     // total ring displacement never exceeds this, so rings keep their order
 const float HELIX_MIX = 0.32;     // brightness of the coarse helical set behind the rings
+
+// Bent path: the tunnel axis leaves the z axis, so far rings drift off-centre and
+// the ride curves like a real passage. Amplitude in viewport heights.
+// Rings must stay nested: |d centre / d z| has to stay below the ring spacing 1/z²,
+// so the bend rate is low and it saturates at PATH_Z_MAX (0.1 × 0.12 < 1/36).
+const float PATH_AMP = 0.10;
+const float PATH_K1 = 0.12;       // radians of bend per unit depth, x and y
+const float PATH_K2 = 0.09;
+const float PATH_W1 = 0.012;      // how fast the bend itself drifts (Hz)
+const float PATH_W2 = 0.008;
+const float PATH_Z_MAX = 6.0;     // beyond this depth the bend saturates
+
+// Per-ring character: lobes (3..7 sided wobble) and the line texture.
+const float LOBE_AMP = 0.03;      // max lobe amplitude in ring units
 
 // Bayer 8x8 threshold matrix, values 0..63.
 const float BAYER[64] = float[64](
@@ -85,6 +101,12 @@ float cylNoise(vec2 p, float wrap) {
 // integrated GPUs (8 hashes per call).
 float fbm(vec2 p, float wrap) {
   return cylNoise(p, wrap) * 0.65 + cylNoise(p * 2.0 + 17.0, wrap * 2.0) * 0.35;
+}
+
+// Four stable random numbers for a ring index (0..1 each).
+vec4 ringHash(float idx) {
+  return vec4(hash21(vec2(idx, 3.1)), hash21(vec2(idx, 7.7)),
+              hash21(vec2(idx, 12.9)), hash21(vec2(idx, 21.3)));
 }
 
 // Anti-aliased line: 1 at the line centre, 0 beyond widthPx pixels.
@@ -154,6 +176,21 @@ void main() {
   float breath = 0.5 + 0.5 * sin(uTime * TAU / 7.0);
   uv *= 1.0 - 0.03 * breath - 0.02 * uLevels.x;
 
+  // --- Bent path: the tunnel centre moves with depth ---------------------------
+  // centre(z) is a slow Lissajous in depth; nothing shifts at the near wall
+  // (z ~ 1) and the shift saturates deep in the dark. The depth of a pixel depends
+  // on the centre it is measured from, so the centre is refined twice: enough for
+  // a smooth curve, and the residual only adds to the organic feel.
+  vec2 pathUv = uv;
+  for (int i = 0; i < 2; i++) {
+    float zc = min(1.0 / max(length(pathUv), 1e-4), PATH_Z_MAX);
+    vec2 centre = PATH_AMP * smoothstep(1.0, 4.0, zc)
+                * vec2(sin(zc * PATH_K1 + uTime * TAU * PATH_W1),
+                       cos(zc * PATH_K2 + uTime * TAU * PATH_W2));
+    pathUv = uv - centre;
+  }
+  uv = pathUv;
+
   float theta = atan(uv.y, uv.x);
   float r = length(uv);
 
@@ -191,7 +228,47 @@ void main() {
   // The beat widens the lines briefly (music only), the breath a little always.
   float lineW = (1.1 + uWidthAdd + 0.15 * breath) * uDpr;
   float ringCoord = depth + ringWarp;                        // integer values are rings
+
+  // --- Per-ring character: each ring has its own contour ------------------------
+  // The nearest ring's index is stable (it travels with the walls), so its hash
+  // gives that ring a lobe count of 3..7, an amplitude of 0..LOBE_AMP (many rings
+  // stay near-circular, a few go wobbly or slightly polygonal) and a drift
+  // direction. The seam halfway between rings is dark, so the jump never shows.
+  float ringIdx = floor(ringCoord + 0.5);
+  vec4 rh = ringHash(ringIdx);
+  float lobes = 3.0 + floor(rh.x * 5.0);
+  // Audio: the mid band scales the amplitude (uLobe.x, smoothed), the low band
+  // drives the drift (uLobe.y) and a kick adds a short extra bulge on the music
+  // family (uWidthAdd is already the rate-limited beat envelope).
+  float lobeAmp = LOBE_AMP * rh.y * rh.y * warpFade * uLobe.x;   // squared: mostly small
+  lobeAmp += 0.03 * uWidthAdd * warpFade;
+  float lobePhase = rh.z * TAU + uLobe.y * (rh.w - 0.5) * 2.0;
+  ringCoord += lobeAmp * sin(lobes * thetaW + lobePhase);
+  // Whatever the layers add up to, a ring never crosses its neighbour.
+  ringCoord = depth + clamp(ringCoord - depth, -WARP_CLAMP, WARP_CLAMP);
+
   float rings = lineSet(ringCoord, lineW);
+
+  // --- Line texture: the phosphor line has material ----------------------------
+  // 1. Dashes: stippled segments along theta, per-ring density (some rings solid,
+  //    some broken), turning slowly, each ring its own way.
+  float segs = 18.0 + floor(rh.w * 30.0);
+  float dashDensity = mix(0.55, 1.0, rh.x);
+  float dashPos = fract(thetaW / TAU * segs + rh.y + uTime * 0.02 * (rh.z - 0.5));
+  float dash = smoothstep(dashDensity - 0.08, dashDensity + 0.02, dashPos);
+  float texture = 1.0 - 0.45 * dash * step(rh.x, 0.6);        // only 60 % of rings are dashed
+  // 2. Beads: a soft brightness swell along the line, slowly sliding.
+  float beads = sin(thetaW * (6.0 + floor(rh.z * 10.0)) + uTime * 0.15 + rh.x * TAU);
+  texture *= 0.88 + 0.12 * beads;
+  // 3. Signal bursts: now and then a short bright pulse runs once around a ring.
+  //    Each ring has a cycle of ~25 s; the burst is live for a fifth of it.
+  float cycle = uTime / 25.0 + rh.w;
+  float live = step(fract(cycle * 0.37), 0.2);                // roughly one cycle in five
+  float head = fract(cycle) * TAU;                            // burst position along the ring
+  float behind = fract((head - thetaW) / TAU);                // 0 at the head, trailing back
+  float burst = live * smoothstep(0.12, 0.0, behind);
+  texture += 0.5 * burst;
+  rings *= texture * warpFade + (1.0 - warpFade);            // texture fades with the warp
   // A coarser set at half frequency, wound once per two rings into a slow helix:
   // dimmer and a touch wider, it gives the walls depth and a hypnotic twist. One
   // whole turn per period keeps it seamless at theta = ±pi.
