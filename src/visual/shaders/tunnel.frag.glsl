@@ -2,7 +2,8 @@
 // Infinite Voidsong: vector-CRT tunnel.
 // Concentric phosphor rings receding to a vanishing point, faint radial spokes,
 // two layers of star dust drifting in depth, per-family geometry tweaks, then a
-// CRT post pass: phosphor bloom, scanline, ordered (Bayer 8x8) dither to 24 levels.
+// CRT post pass: phosphor bloom, scanline, and a visible ordered (Bayer 8x8) dither
+// down to 6 levels per channel, cell size uDitherScale device pixels.
 // Everything is per pixel on one fullscreen triangle; no textures, no extra passes.
 precision highp float;
 
@@ -18,6 +19,8 @@ uniform float uLineBright;   // line brightness after rms modulation, never abov
 uniform float uGrain;        // grain amount, noise family only
 uniform float uWidthAdd;     // extra line width from the beat, music family only
 uniform float uDpr;          // device pixel ratio actually rendered at
+uniform float uDither;       // 0 smooth .. 1 fully dithered (default 0.8)
+uniform float uDitherScale;  // dither cell size in device pixels (default 2.0)
 
 out vec4 outColor;
 
@@ -25,7 +28,9 @@ const float PI = 3.14159265;
 const float TAU = 6.28318531;
 const float RING_DENSITY = 2.6;   // rings per unit of depth
 const float SPOKES = 12.0;        // radial lines around the tunnel
-const float LEVELS = 24.0;        // output quantisation steps
+const float LEVELS = 5.0;         // quantisation steps: 6 output levels per channel (0..5)
+const float BLOOM_W = 5.0;        // bloom halo width as a multiple of the line width
+const float BLOOM_AMT = 0.32;     // bloom halo peak brightness relative to the line
 const float MAX_BRIGHT = 0.85;    // hard ceiling so UI text stays legible
 
 // Bayer 8x8 threshold matrix, values 0..63.
@@ -108,10 +113,24 @@ void main() {
   float ringDistPx = (0.5 - ringDist) / max(ringsPerPx, 1e-5);
   float lineW = (1.1 + uWidthAdd + 0.15 * breath) * uDpr;
   float ring = lineAt(ringDistPx, lineW);
-  float ringGlow = lineAt(ringDistPx, lineW * 3.5);        // phosphor bloom: wider, dimmer copy
-  float rings = clamp(ring + 0.28 * ringGlow, 0.0, 1.0);
+  // Phosphor bloom: a wide, dim halo with a soft falloff. It sits in the low
+  // brightness range where 6 levels are far apart, so this is where the dither
+  // pattern is most visible; keep it wide and smooth so the cells have room.
+  float ringGlow = 1.0 - smoothstep(0.0, lineW * BLOOM_W, ringDistPx);
+  ringGlow *= ringGlow;                                     // quadratic falloff, brighter near the line
+  float rings = clamp(ring + BLOOM_AMT * ringGlow, 0.0, 1.0);
   // Where rings get denser than about 3 px apart they would moiré; let them dissolve.
   rings *= 1.0 - smoothstep(0.12, 0.35, ringsPerPx);
+
+  // --- Dither cell: every post effect below snaps to this grid ---------------
+  // Cells are uDitherScale device pixels wide so the pattern survives dpr 1.5.
+  vec2 cell = floor(gl_FragCoord.xy / uDitherScale);
+
+  // 1-bit grain on the ring lines: each dither cell is either lit or slightly
+  // dimmed, refreshed 12 times a second (frozen with uTime in reduced motion).
+  // Faint on every family; the noise family adds its own analogue grain below.
+  float bit = step(0.5, hash21(cell * 0.37 + floor(uTime * 12.0) * 17.0));
+  rings *= 1.0 - 0.14 * uDither * bit * ring;
 
   // Noise: grain on the line brightness, refreshed 12 times a second, not every frame.
   float grain = hash21(gl_FragCoord.xy + floor(uTime * 12.0) * 17.0) - 0.5;
@@ -154,11 +173,17 @@ void main() {
   col += uLineColor * haze;
   col = min(col, vec3(MAX_BRIGHT));
 
-  // --- CRT post: scanline, Bayer dither, quantise to 24 levels --------------
+  // --- CRT post: scanline, then ordered dither to 6 levels per channel ------
   col *= 0.96 + 0.04 * sin(gl_FragCoord.y * PI);
-  ivec2 px = ivec2(gl_FragCoord.xy) & 7;
+
+  // Bayer 8x8 threshold looked up per dither cell (not per pixel), centred on 0.
+  ivec2 px = ivec2(cell) & 7;
   float threshold = (BAYER[px.y * 8 + px.x] + 0.5) / 64.0 - 0.5;
-  col = floor(col * LEVELS + threshold + 0.5) / LEVELS;
+  // Quantise in units of MAX_BRIGHT so the top level is still the legibility
+  // ceiling: 6 levels per channel, 0, 0.17, 0.34, 0.51, 0.68, 0.85.
+  vec3 quantised = floor(col / MAX_BRIGHT * LEVELS + threshold + 0.5) / LEVELS * MAX_BRIGHT;
+  // uDither blends smooth (0) to fully dithered (1) so the two can be compared.
+  col = mix(col, quantised, uDither);
 
   outColor = vec4(col, 1.0);
 }
