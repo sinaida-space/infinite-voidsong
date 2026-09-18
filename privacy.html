@@ -3,10 +3,85 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Privacy</title>
+  <title>Privacy · Infinite Voidsong</title>
+  <meta name="description" content="How Infinite Voidsong handles data: no analytics, no cookies, no third parties. Settings stay in your browser." />
+  <meta name="robots" content="index, follow" />
   <link rel="stylesheet" href="/src/styles/tokens.css" />
+  <link rel="stylesheet" href="/src/styles/legal.css" />
 </head>
 <body>
-  <h1>Privacy Policy</h1>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main id="main" class="page">
+    <nav class="page__nav"><a href="/">← Infinite Voidsong</a></nav>
+    <h1>Privacy policy</h1>
+    <p class="page__meta">Last updated 2026-09-19</p>
+
+    <p>
+      Infinite Voidsong is built to need as little of your data as possible.
+      There is no analytics, no cookies, and no request ever leaves your
+      browser except to load the page itself.
+    </p>
+
+    <h2>Who runs this</h2>
+    <p>
+      The data controller is Sinaida Krivchenko, based in Prague, Czech
+      Republic. For any privacy question, reach out through
+      <a href="https://sinaida.eu">sinaida.eu</a>.
+    </p>
+
+    <h2>What is stored, and where</h2>
+    <p>
+      Infinite Voidsong saves your mixer settings and preferences in your
+      browser's own storage, under a single key:
+    </p>
+    <ul>
+      <li>
+        <code>voidsong:v1</code>, holding layer volumes, the active preset,
+        timer choice, and whether you have dismissed this notice.
+      </li>
+    </ul>
+    <p>
+      This stays on your device. It is never transmitted anywhere, never
+      read by anyone else, and clearing your browser storage removes it
+      completely.
+    </p>
+
+    <h2>What this site does not do</h2>
+    <ul>
+      <li>No analytics or tracking scripts.</li>
+      <li>No cookies.</li>
+      <li>No third-party requests: fonts, icons, and every asset are
+        self-hosted.</li>
+      <li>No accounts, no forms, no advertising.</li>
+      <li>No automated decision-making or profiling.</li>
+    </ul>
+
+    <h2>Hosting</h2>
+    <p>
+      The site is hosted on Cloudflare Pages. Cloudflare processes standard
+      connection logs (such as IP address and request timestamp) as a
+      processor, to serve the site and keep it secure. Their practices are
+      described in the
+      <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener noreferrer" target="_blank">Cloudflare privacy policy</a>.
+    </p>
+
+    <h2>Your rights</h2>
+    <p>
+      Since nothing is stored outside your own browser, there is no remote
+      record to request, correct, or delete: clearing your browser storage
+      does that instantly. For connection logs processed by Cloudflare
+      through hosting, you may still exercise your rights under GDPR
+      (access, correction, deletion, objection) by contacting
+      <a href="https://sinaida.eu">sinaida.eu</a>, and you may lodge a
+      complaint with your local data protection authority at any time.
+    </p>
+
+    <h2>Changes to this policy</h2>
+    <p>
+      If this policy changes, the date above will change with it.
+    </p>
+  </main>
+  <div id="footer-root"></div>
+  <script type="module" src="/src/ui/footer.ts"></script>
 </body>
 </html>
