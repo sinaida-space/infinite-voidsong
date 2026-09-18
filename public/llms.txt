@@ -1,0 +1,1 @@
+Infinite Voidsong is a web application for composing atmospheric soundscapes for focus, creativity, and rest. The application provides a collection of sounds organized by family and preset combinations for different work modes and time blocks.
