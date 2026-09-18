@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voidsong tunnel harness</title>
+  <link rel="stylesheet" href="/src/styles/tokens.css" />
+  <style>
+    html, body { margin: 0; height: 100%; background: var(--void); overflow: hidden; }
+    #tunnel { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+    #panel {
+      position: fixed; left: 12px; bottom: 12px; z-index: 2; max-width: calc(100vw - 24px);
+      font: 12px/1.6 var(--font-ui), monospace; color: var(--chalk);
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    }
+    #panel button {
+      font: inherit; color: var(--chalk); background: rgba(5,5,5,.6);
+      border: 1px solid var(--gunmetal); padding: 2px 8px; cursor: pointer;
+    }
+    #panel button[aria-pressed="true"] { border-color: var(--red-text); color: var(--red-text); }
+    #panel .sep { width: 100%; height: 0; }
+    #fps { position: fixed; top: 12px; right: 12px; z-index: 2; font: 14px var(--font-ui), monospace; color: var(--chalk); }
+    #title { position: fixed; top: 12px; left: 12px; z-index: 2; font: 14px var(--font-ui), monospace; color: var(--chalk); }
+  </style>
+</head>
+<body>
+  <canvas id="tunnel"></canvas>
+  <div id="title">Infinite Voidsong · tunnel harness (text legibility check)</div>
+  <div id="fps">fps —</div>
+  <div id="panel">
+    <span>family</span>
+    <span id="families"></span>
+    <button data-mix="empty">empty</button>
+    <button data-mix="focus">deep-focus mix</button>
+    <span class="sep"></span>
+    <span>motion</span>
+    <button data-motion="running">running</button>
+    <button data-motion="decelerating">decelerating</button>
+    <button data-motion="still">still</button>
+    <span class="sep"></span>
+    <button id="levels" aria-pressed="false">fake levels</button>
+    <button id="reduced" aria-pressed="false">reduced motion</button>
+  </div>
+
+  <script type="module">
+    import { bus } from '/src/state/events.ts';
+    import { TunnelRenderer } from '/src/visual/renderer.ts';
+    import { FAMILIES } from '/src/visual/families.ts';
+
+    const canvas = document.getElementById('tunnel');
+    const renderer = new TunnelRenderer(canvas, bus);
+    window.renderer = renderer;   // for console poking
+
+    // --- family buttons ---------------------------------------------------------
+    const famBox = document.getElementById('families');
+    const famButtons = new Map();
+    for (const f of FAMILIES) {
+      const b = document.createElement('button');
+      b.textContent = f;
+      b.dataset.family = f;
+      b.setAttribute('aria-pressed', 'false');
+      b.onclick = () => { pressFamily(f); renderer.setFamilies({ [f]: 1 }); };
+      famBox.appendChild(b);
+      famButtons.set(f, b);
+    }
+    const pressFamily = (f) => famButtons.forEach((b, k) => b.setAttribute('aria-pressed', String(k === f)));
+    document.querySelectorAll('[data-mix]').forEach((b) => {
+      b.onclick = () => {
+        pressFamily(null);
+        renderer.setFamilies(b.dataset.mix === 'empty' ? {} : { noise: 0.55, water: 0.35, music: 0.3 });
+      };
+    });
+
+    // --- motion ----------------------------------------------------------------
+    const motionButtons = [...document.querySelectorAll('[data-motion]')];
+    const setMotion = (m) => {
+      motionButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.motion === m)));
+      bus.emit('visual:motion', m);
+    };
+    motionButtons.forEach((b) => { b.onclick = () => setMotion(b.dataset.motion); });
+
+    // --- fake levels driver: slow LFOs plus a 78 bpm kick, 30 Hz like the engine -----
+    let levelsTimer = null;
+    let lastKick = 0;
+    const levelsBtn = document.getElementById('levels');
+    const driveLevels = () => {
+      const t = performance.now() / 1000;
+      const beatPeriod = 60 / 78;
+      const sinceKick = (t - lastKick);
+      if (sinceKick >= beatPeriod) lastKick = t;
+      const beat = Math.max(0, 1 - (t - lastKick) / 0.3);
+      bus.emit('audio:levels', {
+        rms: 0.5 + 0.3 * Math.sin(t * 0.7),
+        low: 0.5 + 0.4 * Math.sin(t * 0.31),
+        mid: 0.4 + 0.3 * Math.sin(t * 0.53),
+        high: 0.4 + 0.4 * Math.sin(t * 1.1),
+        beat,
+      });
+    };
+    levelsBtn.onclick = () => {
+      if (levelsTimer) { clearInterval(levelsTimer); levelsTimer = null; }
+      else levelsTimer = setInterval(driveLevels, 1000 / 30);
+      levelsBtn.setAttribute('aria-pressed', String(!!levelsTimer));
+    };
+
+    // --- reduced motion: follows matchMedia, toggle overrides -------------------
+    const reducedBtn = document.getElementById('reduced');
+    const mq = matchMedia('(prefers-reduced-motion: reduce)');
+    let reduced = mq.matches;
+    const applyReduced = () => { reducedBtn.setAttribute('aria-pressed', String(reduced)); renderer.setReducedMotion(reduced); };
+    mq.addEventListener('change', (e) => { reduced = e.matches; applyReduced(); });
+    reducedBtn.onclick = () => { reduced = !reduced; applyReduced(); };
+    applyReduced();
+
+    // --- fps counter: frames per 5 s window from requestAnimationFrame -----------
+    const fpsEl = document.getElementById('fps');
+    let frames = 0, windowStart = performance.now();
+    window.lastFps = 0;
+    const count = (now) => {
+      frames++;
+      if (now - windowStart >= 5000) {
+        window.lastFps = frames / ((now - windowStart) / 1000);
+        fpsEl.textContent = 'fps ' + window.lastFps.toFixed(1) + ' (5 s)';
+        frames = 0; windowStart = now;
+      }
+      requestAnimationFrame(count);
+    };
+    requestAnimationFrame(count);
+
+    // Start in a running noise tunnel so the page is not blank.
+    pressFamily('noise');
+    renderer.setFamilies({ noise: 1 });
+    setMotion('running');
+  </script>
+</body>
+</html>
