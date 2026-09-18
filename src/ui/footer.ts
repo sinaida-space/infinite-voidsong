@@ -65,7 +65,6 @@ export function mountFooter(root: HTMLElement): HTMLElement {
     link('/guide.html', 'Guide'),
     link('/privacy.html', 'Privacy'),
     link('/shortcuts.html', 'Shortcuts'),
-    link('https://github.com/sinaida-space/infinite-voidsong', 'Source on GitHub', true),
     link('https://sinaida.eu', 'sinaida.eu', true),
   ];
   navItems.forEach((a) => {

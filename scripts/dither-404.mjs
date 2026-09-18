@@ -1,7 +1,7 @@
 // Infinite Voidsong — 404 artwork preprocessor
 //
 // Reads every PNG in 404_images/, resizes it to 720px wide, and reduces it
-// to a two-tone ordered (Bayer 4x4) dither in Void / Chalk. Writes the
+// to a two-tone ordered (Bayer 4x4) dither in Void / brand red. Writes the
 // result to public/404/<name>.png plus a manifest.json the 404 page reads
 // at runtime to pick one at random. Build-time only — `sharp` is a
 // devDependency, never shipped to the browser.
@@ -16,7 +16,7 @@ const TARGET_WIDTH = 720;
 
 // Two tones the page is built in.
 const VOID = { r: 0x05, g: 0x05, b: 0x05 };
-const CHALK = { r: 0xf6, g: 0xf6, b: 0xf6 };
+const CHALK = { r: 0xcd, g: 0x00, b: 0x00 }; // brand red, same palette as the sinaida.eu image dither
 
 // 4x4 ordered (Bayer) dither matrix, values 0-15.
 const BAYER_4X4 = [
