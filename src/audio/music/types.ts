@@ -1,17 +1,9 @@
-// Local copy of the engine contract (docs/PLAN.md §4, "Engine API").
-// Task 3 owns the canonical version; task 9 dedupes once both are merged.
-import type { SourceId, Family } from '../../state/types';
-
-export interface SoundSource {
-  readonly id: SourceId;
-  readonly family: Family;
-  connect(dest: AudioNode): void;
-  start(at: number): void;
-  stop(at: number): void;                                   // internal fade >= 2 s, then teardown
-  setParam(key: string, value: number, rampSec: number): void;
-  dispose(): void;
-}
-export type SourceFactory = (ctx: AudioContext) => SoundSource;
+// The engine contract (docs/PLAN.md §4, "Engine API") lives in ../source;
+// this module re-exports it so there is exactly one definition, and keeps
+// the music-side additions (LofiSource, BarInfo) that ../source has no
+// reason to know about.
+import type { SoundSource } from '../source';
+export type { SoundSource, SourceFactory } from '../source';
 
 // One scheduled bar of the lofi source, reported for the harness log and the
 // "no identical consecutive bars" assertion.
