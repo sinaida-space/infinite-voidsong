@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "check": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs",
-    "typo": "python3 ~/.claude/skills/typography/scripts/typocheck.py privacy.html index.html shortcuts.html README.md",
+    "typo": "python3 ~/.claude/skills/typography/scripts/typocheck.py privacy.html index.html shortcuts.html guide.html README.md",
     "test:state": "tsx src/state/__selftest.ts"
   },
   "devDependencies": {
