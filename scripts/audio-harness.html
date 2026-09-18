@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voidsong audio harness (dev only)</title>
+  <style>
+    body { font: 14px/1.5 ui-monospace, monospace; background: #050505; color: #ddd; margin: 16px; }
+    button { font: inherit; margin: 4px; padding: 6px 10px; background: #1a1a1a; color: #ddd; border: 1px solid #444; cursor: pointer; }
+    button.on { border-color: #e33; color: #fff; }
+    label { display: inline-block; margin: 8px 12px 8px 0; }
+    pre { background: #111; padding: 8px; min-height: 4em; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Audio harness</h1>
+  <p>Dev only. Served by <code>npm run dev</code> at <code>/scripts/audio-harness.html</code>. One button per source starts the engine with that source in layer 0.</p>
+  <div id="sources"></div>
+  <p>
+    <button id="none">layer 0 → none</button>
+    <button id="pause">pause 1.5 s</button>
+    <button id="end">end 20 s</button>
+    <button id="restart">start (resume)</button>
+  </p>
+  <p>
+    <label>layer vol <input id="vol" type="range" min="0" max="1" step="0.01" value="1" /> <span id="volv">1.00</span></label>
+    <label>master <input id="master" type="range" min="0" max="1" step="0.01" value="1" /> <span id="masterv">1.00</span></label>
+    <label>noise.tilt <input id="tilt" type="range" min="0" max="1" step="0.01" value="0.5" /> <span id="tiltv">0.50</span></label>
+    <label>ocean.period <input id="period" type="range" min="8" max="24" step="0.5" value="14" /> <span id="periodv">14</span></label>
+  </p>
+  <pre id="meter">meter</pre>
+  <pre id="log"></pre>
+
+  <script type="module">
+    import { AudioEngine, SOURCES } from '/src/audio/engine.ts';
+    import { bus } from '/src/state/events.ts';
+
+    const log = document.getElementById('log');
+    const say = (s) => { log.textContent = (s + '\n' + log.textContent).slice(0, 4000); };
+    let errors = 0;
+    window.addEventListener('error', (e) => { errors++; say('ERROR ' + e.message); });
+    window.addEventListener('unhandledrejection', (e) => { errors++; say('REJECT ' + e.reason); });
+
+    const engine = new AudioEngine(bus);
+    window.engine = engine;
+
+    const state = {
+      version: 1, playback: 'playing',
+      layers: [
+        { source: 'none', volume: 1, muted: false, params: {} },
+        { source: 'none', volume: 0.5, muted: false, params: {} },
+        { source: 'none', volume: 0.5, muted: false, params: {} },
+        { source: 'none', volume: 0.5, muted: false, params: {} },
+      ],
+      master: { volume: 1 }, focusBoost: { depth: 0, rateHz: 16 }, preset: null,
+      session: { timer: null, phase: 'free', phaseEndsAt: null, warmup: false, sleepEndsAt: null },
+      onboarded: true, noticeDismissed: true, reducedMotion: false,
+    };
+    const push = () => engine.apply(structuredClone(state));
+
+    let started = false;
+    async function ensureStarted() {
+      if (started) return;
+      started = true;
+      await engine.start();
+      say('engine started, ctx ' + engine.context.state + ' @ ' + engine.context.sampleRate + ' Hz');
+    }
+
+    const sourcesEl = document.getElementById('sources');
+    for (const id of Object.keys(SOURCES)) {
+      const b = document.createElement('button');
+      b.textContent = id;
+      b.dataset.id = id;
+      b.onclick = async () => {
+        await ensureStarted();
+        state.layers[0].source = id;
+        state.layers[0].params = id === 'noise' ? { 'noise.tilt': +tilt.value } : id === 'ocean' ? { 'ocean.period': +period.value } : {};
+        push();
+        for (const x of sourcesEl.children) x.classList.toggle('on', x.dataset.id === id);
+        say('layer 0 → ' + id);
+      };
+      sourcesEl.appendChild(b);
+    }
+
+    document.getElementById('none').onclick = () => { state.layers[0].source = 'none'; push(); say('layer 0 → none'); };
+    document.getElementById('pause').onclick = () => engine.pause().then(() => say('paused, ctx ' + engine.context.state));
+    document.getElementById('end').onclick = () => engine.end(20).then(() => say('ended'));
+    document.getElementById('restart').onclick = () => engine.start().then(() => say('started, ctx ' + engine.context.state));
+
+    const bind = (id, fn) => {
+      const el = document.getElementById(id);
+      el.oninput = () => { document.getElementById(id + 'v').textContent = (+el.value).toFixed(2); fn(+el.value); };
+    };
+    bind('vol', (v) => { state.layers[0].volume = v; push(); });
+    bind('master', (v) => { state.master.volume = v; push(); });
+    bind('tilt', (v) => { state.layers[0].params = { 'noise.tilt': v }; push(); });
+    bind('period', (v) => { state.layers[0].params = { 'ocean.period': v }; push(); });
+
+    // Level readout: peak-hold of the last second, from the engine's own bus.
+    let frames = 0, acc = { rms: 0, low: 0, mid: 0, high: 0 };
+    bus.on('audio:levels', (f) => { frames++; for (const k in acc) acc[k] += f[k]; });
+    // Absolute RMS at the master analyser (post ceiling), for level matching between sources.
+    const tapBuf = new Float32Array(1024);
+    let dbfs = -Infinity;
+    setInterval(() => {
+      if (started) {
+        engine.analyser.getFloatTimeDomainData(tapBuf);
+        let sq = 0; for (const s of tapBuf) sq += s * s;
+        dbfs = 20 * Math.log10(Math.sqrt(sq / tapBuf.length) + 1e-9);
+      }
+      const n = frames || 1;
+      const line = `${dbfs.toFixed(1)} dBFS  levels/s ${frames}  rms ${(acc.rms / n).toFixed(2)} low ${(acc.low / n).toFixed(2)} mid ${(acc.mid / n).toFixed(2)} high ${(acc.high / n).toFixed(2)}  errors ${errors}`;
+      document.title = line;
+      document.getElementById('meter').textContent = line;
+      window.__levels = { dbfs, frames, ...acc, errors };
+      frames = 0; acc = { rms: 0, low: 0, mid: 0, high: 0 };
+    }, 1000);
+  </script>
+</body>
+</html>
