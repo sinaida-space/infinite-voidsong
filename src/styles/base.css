@@ -1,0 +1,113 @@
+/* Infinite Voidsong — base layout and reset */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-ui), 'Courier New', monospace;
+  color: var(--chalk);
+  background: var(--void);
+  display: grid;
+  grid-template-areas:
+    'banner'
+    'app'
+    'timer'
+    'footer';
+  grid-template-rows: auto 1fr auto auto;
+}
+
+@media (min-width: 960px) {
+  body {
+    grid-template-areas:
+      'banner banner'
+      'app timer'
+      'footer footer';
+    grid-template-columns: 1fr 320px;
+  }
+}
+
+#tunnel {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+}
+
+#banner {
+  grid-area: banner;
+}
+
+#app {
+  grid-area: app;
+  min-width: 0;
+}
+
+#timer {
+  grid-area: timer;
+}
+
+#footer {
+  grid-area: footer;
+}
+
+#onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+}
+
+#onboarding:empty {
+  display: none;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+select,
+input {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--chalk);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
