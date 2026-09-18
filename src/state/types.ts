@@ -6,10 +6,11 @@ export type SourceId =
   | 'campfire'                                     // family fire
   | 'cafe' | 'library' | 'cabin' | 'fan'           // family place
   | 'drone' | 'lofi' | 'plucks'                    // family music
+  | 'synthwave' | 'berlin' | 'house' | 'chillhop'  // family music (electronic)
   | 'tone';                                        // family tone
 
 export type Family = 'noise' | 'water' | 'air' | 'fire' | 'place' | 'music' | 'tone';
-export const FAMILY_OF: Record<Exclude<SourceId,'none'>, Family> = { noise:'noise', rain:'water', ocean:'water', stream:'water', underwater:'water', wind:'air', campfire:'fire', cafe:'place', library:'place', cabin:'place', fan:'place', drone:'music', lofi:'music', plucks:'music', tone:'tone' };
+export const FAMILY_OF: Record<Exclude<SourceId,'none'>, Family> = { noise:'noise', rain:'water', ocean:'water', stream:'water', underwater:'water', wind:'air', campfire:'fire', cafe:'place', library:'place', cabin:'place', fan:'place', drone:'music', lofi:'music', plucks:'music', synthwave:'music', berlin:'music', house:'music', chillhop:'music', tone:'tone' };
 
 export interface LayerState {
   source: SourceId;                 // 'none' = empty slot
@@ -25,6 +26,21 @@ export interface LayerState {
 //   tone.freq    200..12000 Hz                                      default 4000
 //   tone.width   0..1   0 = pure sine, 1 = wide band noise          default 0.3
 //   ocean.period 8..24 s                                            default 14
+//   synthwave.bpm  84..100                                          default 92
+//   synthwave.tape 0..1   tape filter amount                        default 0.3
+//   synthwave.pump 0..1   sidechain depth                           default 0.35
+//   synthwave.arp  0..1   arpeggio brightness (bass LPF range)      default 0.5
+//   berlin.bpm     70..100                                          default 84
+//   berlin.tape    0..1   tape filter amount                        default 0.4
+//   berlin.pulse   0..1   soft 8th-note pulse level (0 = off)       default 0.3
+//   house.bpm      90..110                                          default 100
+//   house.tape     0..1   tape filter amount                        default 0.2
+//   house.pump     0..1   sidechain depth                           default 0.5
+//   house.filter   0..1   slow global LPF sweep amount              default 0.4
+//   chillhop.bpm     60..90                                         default 72
+//   chillhop.tape    0..1 tape filter amount                        default 0.6
+//   chillhop.pump    0..1 sidechain depth                           default 0.4
+//   chillhop.crackle 0..1 vinyl clicks and hiss level               default 0.5
 
 export interface FocusBoost { depth: number /* 0..1, default 0 */; rateHz: number /* 12..20, default 16 */; }
 

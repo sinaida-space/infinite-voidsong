@@ -86,11 +86,12 @@ check('dist/index.html has no banned font names', () => {
   if (hit) throw new Error(`found banned font "${hit}"`);
 });
 
-// --- 15 source keys ----------------------------------------------------------
+// --- 19 source keys ----------------------------------------------------------
 
 const EXPECTED_SOURCE_KEYS = [
   'noise', 'rain', 'ocean', 'stream', 'underwater', 'wind', 'campfire',
-  'cafe', 'library', 'cabin', 'fan', 'drone', 'lofi', 'plucks', 'tone',
+  'cafe', 'library', 'cabin', 'fan', 'drone', 'lofi', 'plucks',
+  'synthwave', 'berlin', 'house', 'chillhop', 'tone',
 ];
 
 check(`src/audio/sources/index.ts lists all ${EXPECTED_SOURCE_KEYS.length} source keys`, () => {
