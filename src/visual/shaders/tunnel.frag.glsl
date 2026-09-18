@@ -1,10 +1,12 @@
 #version 300 es
-// Infinite Voidsong: vector-CRT tunnel.
-// Concentric phosphor rings receding to a vanishing point, faint radial spokes,
-// two layers of star dust drifting in depth, per-family geometry tweaks, then a
-// CRT post pass: phosphor bloom, scanline, and a visible ordered (Bayer 8x8) dither
-// down to 6 levels per channel, cell size uDitherScale device pixels.
-// Everything is per pixel on one fullscreen triangle; no textures, no extra passes.
+// Infinite Voidsong: a living vector-CRT tunnel.
+// Phosphor rings receding to a vanishing point, but the walls are alive: two layers
+// of low-frequency value noise bend the ring contours and the angle, a dim helix at
+// half the ring frequency gives the walls depth and twist, the camera sways and
+// rolls very slowly so the eye is led forward. Star dust drifts between the rings,
+// per-family geometry tweaks stay, and the CRT post pass (phosphor bloom, scanline,
+// ordered Bayer dither to 6 levels) closes it. Everything is slow: no strobing, no
+// fast rotation. Everything is per pixel on one fullscreen triangle; no textures.
 precision highp float;
 
 uniform vec2  uRes;          // canvas size in device pixels
@@ -14,7 +16,8 @@ uniform float uSpeed;        // current forward speed, 0 when still
 uniform float uFamily[7];    // family weights: 0 noise, 1 water, 2 air, 3 fire, 4 place, 5 music, 6 tone
 uniform vec4  uLevels;       // smoothed rms, low, mid, high (0..1)
 uniform float uBeat;         // 1 on a kick, decays to 0 over 300 ms
-uniform vec3  uLineColor;    // blended family hue (the only non-brand colour on screen)
+uniform vec3  uLineColor;    // wall hue near the viewer (family blend, music per source)
+uniform vec3  uLineColorFar; // wall hue deep in the tunnel (differs only for two-tone sources)
 uniform float uLineBright;   // line brightness after rms modulation, never above 0.85
 uniform float uGrain;        // grain amount, noise family only
 uniform float uWidthAdd;     // extra line width from the beat, music family only
@@ -33,6 +36,18 @@ const float BLOOM_W = 5.0;        // bloom halo width as a multiple of the line 
 const float BLOOM_AMT = 0.32;     // bloom halo peak brightness relative to the line
 const float MAX_BRIGHT = 0.85;    // hard ceiling so UI text stays legible
 
+// Camera: the vanishing point wanders on a Lissajous path and the view rolls a little.
+const float SWAY_AMT = 0.06;      // ±6 % of the viewport height
+const float SWAY_HZ_X = 0.017;
+const float SWAY_HZ_Y = 0.011;
+const float ROLL_DEG = 4.0;       // ±4° roll
+const float ROLL_HZ = 0.01;
+
+// Organic walls: noise displaces the ring coordinate (radial undulation) and the angle.
+const float WARP_RING = 0.14;     // ring displacement in ring units (0.05..0.15 per spec)
+const float WARP_ANGLE = 0.09;    // angular displacement in radians
+const float HELIX_MIX = 0.32;     // brightness of the coarse helical set behind the rings
+
 // Bayer 8x8 threshold matrix, values 0..63.
 const float BAYER[64] = float[64](
    0., 32.,  8., 40.,  2., 34., 10., 42.,
@@ -44,16 +59,53 @@ const float BAYER[64] = float[64](
   15., 47.,  7., 39., 13., 45.,  5., 37.,
   63., 31., 55., 23., 61., 29., 53., 21.);
 
-// Cheap 2D hash, good enough for dust and grain.
+// Cheap 2D hash, good enough for dust, grain and value noise.
 float hash21(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
   return fract(p.x * p.y);
 }
 
+// Value noise on a cylinder, -1..1: the x axis wraps every `wrap` cells so the tunnel
+// angle has no seam. Smoothstep interpolation keeps the contours soft, never sawtooth.
+float cylNoise(vec2 p, float wrap) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float x0 = mod(i.x, wrap);
+  float x1 = mod(i.x + 1.0, wrap);
+  float a = hash21(vec2(x0, i.y));
+  float b = hash21(vec2(x1, i.y));
+  float c = hash21(vec2(x0, i.y + 1.0));
+  float d = hash21(vec2(x1, i.y + 1.0));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y) * 2.0 - 1.0;
+}
+
+// Two octaves are enough for a low-frequency organic drift and cheap enough for
+// integrated GPUs (8 hashes per call).
+float fbm(vec2 p, float wrap) {
+  return cylNoise(p, wrap) * 0.65 + cylNoise(p * 2.0 + 17.0, wrap * 2.0) * 0.35;
+}
+
 // Anti-aliased line: 1 at the line centre, 0 beyond widthPx pixels.
 float lineAt(float distPx, float widthPx) {
   return 1.0 - smoothstep(widthPx - 0.6, widthPx + 0.6, distPx);
+}
+
+// A phosphor line set on a periodic coordinate (integer values are lines), with the
+// bloom halo and the moiré dissolve where lines get denser than pixels.
+float lineSet(float coord, float widthPx) {
+  float perPx = fwidth(coord);
+  float dist = abs(fract(coord) - 0.5);                     // 0.5 at a line, 0 halfway
+  float distPx = (0.5 - dist) / max(perPx, 1e-5);
+  float line = lineAt(distPx, widthPx);
+  // Phosphor bloom: a wide, dim halo with a quadratic falloff. It lives in the low
+  // brightness range where 6 levels are far apart, which is where the dither shows.
+  float glow = 1.0 - smoothstep(0.0, widthPx * BLOOM_W, distPx);
+  glow *= glow;
+  float amt = clamp(line + BLOOM_AMT * glow, 0.0, 1.0);
+  // Where lines get denser than about 3 px apart they would moiré; let them dissolve.
+  return amt * (1.0 - smoothstep(0.12, 0.35, perPx));
 }
 
 // Hashed point sprites in polar space (theta, depth), drifting toward the viewer.
@@ -87,9 +139,20 @@ void main() {
 
   // --- Screen to polar, centre origin, aspect-correct ------------------------
   vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
-  // The whole tunnel breathes: a slow 7 s cycle, a little wider on the in-breath.
+
+  // Camera sway: the vanishing point drifts on a slow Lissajous path.
+  vec2 sway = SWAY_AMT * vec2(sin(uTime * TAU * SWAY_HZ_X), sin(uTime * TAU * SWAY_HZ_Y + 1.3));
+  uv -= sway;
+
+  // Camera roll: a few degrees either way, once every 100 s.
+  float roll = radians(ROLL_DEG) * sin(uTime * TAU * ROLL_HZ);
+  float cr = cos(roll), sr = sin(roll);
+  uv = mat2(cr, -sr, sr, cr) * uv;
+
+  // The whole tunnel breathes: a slow 7 s cycle, a little wider on the in-breath,
+  // plus a subtle swell with the audio level.
   float breath = 0.5 + 0.5 * sin(uTime * TAU / 7.0);
-  uv *= 1.0 - 0.03 * breath;
+  uv *= 1.0 - 0.03 * breath - 0.02 * uLevels.x;
 
   float theta = atan(uv.y, uv.x);
   float r = length(uv);
@@ -106,21 +169,34 @@ void main() {
   // which also hides the aliasing where rings get denser than pixels.
   float depthFade = smoothstep(0.0, 0.12, r) * mix(0.18, 1.0, smoothstep(0.06, 0.55, r));
 
-  // --- Rings ----------------------------------------------------------------
-  float ringCoord = z * RING_DENSITY - uTravel;             // integer values are rings
-  float ringsPerPx = fwidth(ringCoord);
-  float ringDist = abs(fract(ringCoord) - 0.5);             // 0.5 at a ring, 0 halfway
-  float ringDistPx = (0.5 - ringDist) / max(ringsPerPx, 1e-5);
+  // --- Living walls: domain warp in (theta, depth, time) ---------------------
+  // depth is measured along the tunnel and travels with it, so the bends belong to
+  // the walls and slide past the viewer. Two layers at different scales and drift
+  // rates (0.02..0.05 Hz) so the motion never repeats visibly.
+  // Toward the vanishing point the rings compress and any bend would turn into
+  // kinks, so the warp fades out there.
+  float depth = z * RING_DENSITY - uTravel;
+  float warpFade = smoothstep(0.05, 0.32, r);
+  vec2 warpA = vec2(theta / TAU * 3.0 + uTime * 0.020, depth * 0.09 + uTime * 0.035);
+  vec2 warpB = vec2(theta / TAU * 5.0 - uTime * 0.031, depth * 0.17 - uTime * 0.022);
+  float bendA = fbm(warpA, 3.0);
+  float bendB = fbm(warpB, 5.0);
+  // Ring displacement: coarse layer shapes the contour, fine layer adds texture.
+  float ringWarp = WARP_RING * warpFade * (0.75 * bendA + 0.45 * bendB);
+  // Angular displacement (coarse layer only, so spokes bend without kinks).
+  float thetaWarp = WARP_ANGLE * warpFade * bendA;
+  float thetaW = theta + thetaWarp;
+
+  // --- Rings and the helix behind them ----------------------------------------
+  // The beat widens the lines briefly (music only), the breath a little always.
   float lineW = (1.1 + uWidthAdd + 0.15 * breath) * uDpr;
-  float ring = lineAt(ringDistPx, lineW);
-  // Phosphor bloom: a wide, dim halo with a soft falloff. It sits in the low
-  // brightness range where 6 levels are far apart, so this is where the dither
-  // pattern is most visible; keep it wide and smooth so the cells have room.
-  float ringGlow = 1.0 - smoothstep(0.0, lineW * BLOOM_W, ringDistPx);
-  ringGlow *= ringGlow;                                     // quadratic falloff, brighter near the line
-  float rings = clamp(ring + BLOOM_AMT * ringGlow, 0.0, 1.0);
-  // Where rings get denser than about 3 px apart they would moiré; let them dissolve.
-  rings *= 1.0 - smoothstep(0.12, 0.35, ringsPerPx);
+  float ringCoord = depth + ringWarp;                        // integer values are rings
+  float rings = lineSet(ringCoord, lineW);
+  // A coarser set at half frequency, wound once per two rings into a slow helix:
+  // dimmer and a touch wider, it gives the walls depth and a hypnotic twist. One
+  // whole turn per period keeps it seamless at theta = ±pi.
+  rings += HELIX_MIX * lineSet(ringCoord * 0.5 + thetaW / TAU + 0.25, lineW * 1.3);
+  rings = min(rings, 1.0);
 
   // --- Dither cell: every post effect below snaps to this grid ---------------
   // Cells are uDitherScale device pixels wide so the pattern survives dpr 1.5.
@@ -130,7 +206,7 @@ void main() {
   // dimmed, refreshed 12 times a second (frozen with uTime in reduced motion).
   // Faint on every family; the noise family adds its own analogue grain below.
   float bit = step(0.5, hash21(cell * 0.37 + floor(uTime * 12.0) * 17.0));
-  rings *= 1.0 - 0.14 * uDither * bit * ring;
+  rings *= 1.0 - 0.14 * uDither * bit * smoothstep(0.4, 1.0, rings);
 
   // Noise: grain on the line brightness, refreshed 12 times a second, not every frame.
   float grain = hash21(gl_FragCoord.xy + floor(uTime * 12.0) * 17.0) - 0.5;
@@ -140,7 +216,8 @@ void main() {
   rings *= 1.0 - 0.85 * wTone;
 
   // --- Spokes: faint radial lines converging on the vanishing point ---------
-  float spokeAngle = abs(fract(theta / TAU * SPOKES + 0.5) - 0.5) * TAU / SPOKES;
+  // They follow the angular warp so they bend with the walls.
+  float spokeAngle = abs(fract(thetaW / TAU * SPOKES + 0.5) - 0.5) * TAU / SPOKES;
   float spokeDistPx = spokeAngle * r * uRes.y;
   float spokes = lineAt(spokeDistPx, 0.8 * uDpr) * 0.22 * smoothstep(0.05, 0.4, r);
   spokes *= 1.0 - wTone;
@@ -166,11 +243,14 @@ void main() {
   float lineAmt = (rings + spokes) * depthFade + axial;
   float bright = uLineBright * (0.94 + 0.06 * breath);
 
+  // Wall hue: the far colour deep in the tunnel, the near colour at the edges.
+  vec3 wallHue = mix(uLineColorFar, uLineColor, smoothstep(0.08, 0.5, r));
+
   vec3 col = vec3(0.0);                                      // Void
-  col += uLineColor * lineAmt * bright;
-  col += mix(vec3(1.0), uLineColor, 0.4) * dust;
+  col += wallHue * lineAmt * bright;
+  col += mix(vec3(1.0), wallHue, 0.4) * dust;
   col += vec3(0.878, 0.541, 0.118) * sparks;                 // fire hue
-  col += uLineColor * haze;
+  col += wallHue * haze;
   col = min(col, vec3(MAX_BRIGHT));
 
   // --- CRT post: scanline, then ordered dither to 6 levels per channel ------
