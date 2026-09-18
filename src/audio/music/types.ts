@@ -22,3 +22,7 @@ export interface LofiSource extends SoundSource {
   onBeat: ((time: number) => void) | null;
   onBar: ((info: BarInfo) => void) | null;
 }
+
+// The electronic sources (synthwave, berlin, house, chillhop) report bars the
+// same way lofi does, so the harness log and bar check work for all of them.
+export type SequencedSource = LofiSource;

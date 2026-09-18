@@ -1,8 +1,9 @@
 // SOURCES — every playable source by id. Task 3 owns the eleven ambient
-// recipes; drone / lofi / plucks / tone come from the music register (task 4).
+// recipes; drone / lofi / plucks / tone come from the music register (task 4),
+// synthwave / berlin / house / chillhop too (task 13).
 import type { SourceId } from '../../state/types';
 import type { SourceFactory } from '../source';
-import { drone, lofi, plucks, tone } from '../music/register';
+import { berlin, chillhop, drone, house, lofi, plucks, synthwave, tone } from '../music/register';
 import { cabin } from './cabin';
 import { cafe } from './cafe';
 import { campfire } from './campfire';
@@ -22,5 +23,6 @@ export const SOURCES: Record<Exclude<SourceId, 'none'>, SourceFactory> = {
   campfire,
   cafe, library, cabin, fan,
   drone, lofi, plucks,
+  synthwave, berlin, house, chillhop,
   tone,
 };
