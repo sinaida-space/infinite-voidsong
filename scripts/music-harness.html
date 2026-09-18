@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music harness (dev only)</title>
+  <style>
+    body { font: 14px/1.5 monospace; background: #050505; color: #f6f6f6; margin: 24px; }
+    button { font: inherit; padding: 6px 12px; margin: 4px; background: #111; color: #f6f6f6; border: 1px solid #cd0000; cursor: pointer; }
+    button.on { background: #cd0000; }
+    label { display: inline-block; margin: 4px 12px 4px 0; }
+    input[type=range] { vertical-align: middle; }
+    #log { white-space: pre; max-height: 40vh; overflow: auto; border-top: 1px solid #333; margin-top: 16px; padding-top: 8px; color: #a7bebe; }
+    .row { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <h1>Music harness</h1>
+  <div class="row" id="scale"></div>
+  <div class="row" id="sources"></div>
+  <div class="row">
+    <label>lofi.bpm <input type="range" id="bpm" min="60" max="100" value="78" /> <span id="bpmv">78</span></label>
+    <label>lofi.tape <input type="range" id="tape" min="0" max="1" step="0.01" value="0.5" /></label>
+    <label>lofi.pump <input type="range" id="pump" min="0" max="1" step="0.01" value="0.4" /></label>
+  </div>
+  <div class="row">
+    <label>tone.freq <input type="range" id="freq" min="200" max="12000" value="4000" /> <span id="freqv">4000</span></label>
+    <label>tone.width <input type="range" id="width" min="0" max="1" step="0.01" value="0.3" /></label>
+  </div>
+  <div class="row">
+    <label>focusBoost.depth <input type="range" id="depth" min="0" max="1" step="0.01" value="0" /></label>
+    <label>focusBoost.rateHz <input type="range" id="rate" min="12" max="20" step="0.1" value="16" /></label>
+    <label>master <input type="range" id="master" min="0" max="1" step="0.01" value="0.7" /></label>
+  </div>
+  <div class="row">
+    <button id="barcheck">Lofi 3-minute bar check</button>
+    <span id="barstatus"></span>
+  </div>
+  <div id="log"></div>
+
+  <script type="module">
+    import { MUSIC_SOURCES, focusBoostNode, onBeat, rootName } from '/src/audio/music/register.ts';
+
+    const $ = (id) => document.getElementById(id);
+    const logEl = $('log');
+    const log = (...args) => {
+      const line = args.join(' ');
+      console.log(line);
+      logEl.textContent = (line + '\n' + logEl.textContent).slice(0, 20000);
+    };
+
+    let ctx, fb, master;
+    const live = {};                       // id -> SoundSource while playing
+    const ensureCtx = async () => {
+      if (ctx) { if (ctx.state !== 'running') await ctx.resume(); return; }
+      ctx = new AudioContext();
+      await ctx.resume();
+      master = ctx.createGain();
+      master.gain.value = Number($('master').value);
+      master.connect(ctx.destination);
+      // Focus Boost sits only in the music-family path; the tone bypasses it.
+      fb = focusBoostNode(ctx);
+      fb.output.connect(master);
+      onBeat((t) => log(`[beat] ${t.toFixed(3)} s`));
+      $('scale').textContent = `session scale: ${rootName()}  ·  sampleRate ${ctx.sampleRate}`;
+      // Peak/RMS meter on the master so a headless run can check levels.
+      const meter = ctx.createAnalyser();
+      meter.fftSize = 2048;
+      master.connect(meter);
+      const buf = new Float32Array(meter.fftSize);
+      window.__harness = {
+        ctx, live, fb,
+        levels() {
+          meter.getFloatTimeDomainData(buf);
+          let peak = 0, sum = 0;
+          for (const v of buf) { peak = Math.max(peak, Math.abs(v)); sum += v * v; }
+          const rms = Math.sqrt(sum / buf.length);
+          return { peakDb: 20 * Math.log10(peak || 1e-9), rmsDb: 20 * Math.log10(rms || 1e-9), t: ctx.currentTime };
+        },
+      };
+    };
+
+    const start = async (id) => {
+      await ensureCtx();
+      const src = MUSIC_SOURCES[id](ctx);
+      src.connect(src.family === 'music' ? fb.input : master);
+      if (id === 'lofi') {
+        src.setParam('lofi.bpm', Number($('bpm').value), 0);
+        src.setParam('lofi.tape', Number($('tape').value), 0);
+        src.setParam('lofi.pump', Number($('pump').value), 0);
+        src.onBar = (b) => {
+          log(`[sched] bar ${b.bar} @ ${b.time.toFixed(3)} s bpm ${b.bpm} pattern ${b.pattern} chord ${b.chord ?? '-'} sig ${b.signature}`);
+          barCheck?.(b);
+        };
+      }
+      if (id === 'tone') {
+        src.setParam('tone.freq', Number($('freq').value), 0);
+        src.setParam('tone.width', Number($('width').value), 0);
+      }
+      src.start(ctx.currentTime);
+      live[id] = src;
+      log(`[harness] start ${id} @ ${ctx.currentTime.toFixed(2)} s`);
+    };
+    const stop = (id) => {
+      live[id]?.stop(ctx.currentTime);
+      log(`[harness] stop ${id} @ ${ctx.currentTime.toFixed(2)} s`);
+      delete live[id];
+    };
+
+    for (const id of ['drone', 'lofi', 'plucks', 'tone']) {
+      const b = document.createElement('button');
+      b.textContent = id;
+      b.onclick = async () => {
+        if (live[id]) { stop(id); b.classList.remove('on'); }
+        else { await start(id); b.classList.add('on'); }
+      };
+      $('sources').appendChild(b);
+    }
+
+    const bind = (id, fn) => $(id).addEventListener('input', (e) => fn(Number(e.target.value)));
+    bind('bpm', (v) => { $('bpmv').textContent = v; live.lofi?.setParam('lofi.bpm', v, 0.3); });
+    bind('tape', (v) => live.lofi?.setParam('lofi.tape', v, 0.3));
+    bind('pump', (v) => live.lofi?.setParam('lofi.pump', v, 0.3));
+    bind('freq', (v) => { $('freqv').textContent = v; live.tone?.setParam('tone.freq', v, 0.3); });
+    bind('width', (v) => live.tone?.setParam('tone.width', v, 0.3));
+    bind('depth', (v) => fb?.set({ depth: v, rateHz: Number($('rate').value) }));
+    bind('rate', (v) => fb?.set({ depth: Number($('depth').value), rateHz: v }));
+    bind('master', (v) => { if (master) master.gain.linearRampToValueAtTime(v, ctx.currentTime + 0.1); });
+
+    // DoD: a 3-minute run of lofi must never schedule two identical consecutive bars.
+    let barCheck = null;
+    $('barcheck').onclick = async () => {
+      if (!live.lofi) { await start('lofi'); $('sources').children[1].classList.add('on'); }
+      const bars = [];
+      const t0 = ctx.currentTime;
+      window.__barCheck = { done: false, pass: null, bars };
+      $('barstatus').textContent = 'running (180 s)...';
+      barCheck = (b) => {
+        bars.push(b.signature);
+        if (b.time - t0 >= 180) {
+          barCheck = null;
+          let repeats = 0;
+          for (let i = 1; i < bars.length; i++) if (bars[i] === bars[i - 1]) repeats++;
+          const pass = repeats === 0 && bars.length > 40;
+          window.__barCheck = { done: true, pass, bars, repeats };
+          const msg = `[barcheck] ${pass ? 'PASS' : 'FAIL'}: ${bars.length} bars, ${repeats} identical consecutive`;
+          log(msg);
+          $('barstatus').textContent = msg;
+        }
+      };
+    };
+  </script>
+</body>
+</html>
