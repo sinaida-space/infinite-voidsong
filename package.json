@@ -1,0 +1,19 @@
+{
+  "name": "infinite-voidsong",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "tsc --noEmit",
+    "smoke": "node scripts/smoke.mjs",
+    "typo": "python3 ~/.claude/skills/typography/scripts/typocheck.py privacy.html index.html shortcuts.html README.md"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "@types/node": "^20.10.0"
+  }
+}
