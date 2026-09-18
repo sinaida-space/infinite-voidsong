@@ -14,10 +14,12 @@ import fragSrc from './shaders/tunnel.frag.glsl?raw';
 const MAX_DPR = 1.5;
 const HALF_RES_BELOW_PX = 600;   // mobile widths render at half resolution
 const MAX_DT = 0.05;             // clamp after a stall so nothing jumps
+const DITHER_SCALE = 2;          // dither cell size in device pixels (visible at dpr 1.5)
+const DITHER_DEFAULT = 0.8;      // 0 smooth .. 1 fully dithered
 
 const UNIFORMS = [
   'uRes', 'uTime', 'uTravel', 'uSpeed', 'uFamily', 'uLevels', 'uBeat',
-  'uLineColor', 'uLineBright', 'uGrain', 'uWidthAdd', 'uDpr',
+  'uLineColor', 'uLineBright', 'uGrain', 'uWidthAdd', 'uDpr', 'uDither', 'uDitherScale',
 ] as const;
 type UniformName = typeof UNIFORMS[number];
 
@@ -33,6 +35,7 @@ export class TunnelRenderer {
   private time = 0;              // animated seconds (frozen when still / reduced motion)
   private travel = 0;            // ∫ speed dt
   private dpr = 1;
+  private dither = DITHER_DEFAULT;
   private hidden = document.visibilityState === 'hidden';
   private observer: ResizeObserver | null = null;
   private readonly unsubscribe: Array<() => void> = [];
@@ -73,6 +76,12 @@ export class TunnelRenderer {
   /** Static frame: the time uniforms stop advancing until this is switched off. */
   setReducedMotion(on: boolean): void {
     this.reactive.reducedMotion = on;
+    this.requestFrame();
+  }
+
+  /** Dither amount 0..1: 0 smooth shading, 1 fully ordered-dithered to 6 levels. */
+  setDither(v: number): void {
+    this.dither = Math.min(1, Math.max(0, Number.isFinite(v) ? v : DITHER_DEFAULT));
     this.requestFrame();
   }
 
@@ -237,6 +246,8 @@ export class TunnelRenderer {
     gl.uniform1f(L.uGrain!, p.grain);
     gl.uniform1f(L.uWidthAdd!, p.widthAdd);
     gl.uniform1f(L.uDpr!, this.dpr);
+    gl.uniform1f(L.uDither!, this.dither);
+    gl.uniform1f(L.uDitherScale!, DITHER_SCALE);
     gl.bindVertexArray(this.vao);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.bindVertexArray(null);
