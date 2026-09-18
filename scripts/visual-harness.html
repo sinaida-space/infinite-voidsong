@@ -33,6 +33,10 @@
     <button data-mix="empty">empty</button>
     <button data-mix="focus">deep-focus mix</button>
     <span class="sep"></span>
+    <span>source</span>
+    <span id="sources"></span>
+    <button data-mix="music">music mix</button>
+    <span class="sep"></span>
     <span>motion</span>
     <button data-motion="running">running</button>
     <button data-motion="decelerating">decelerating</button>
@@ -45,7 +49,7 @@
   <script type="module">
     import { bus } from '/src/state/events.ts';
     import { TunnelRenderer } from '/src/visual/renderer.ts';
-    import { FAMILIES } from '/src/visual/families.ts';
+    import { FAMILIES, MUSIC_SOURCES } from '/src/visual/families.ts';
 
     const canvas = document.getElementById('tunnel');
     const renderer = new TunnelRenderer(canvas, bus);
@@ -64,10 +68,36 @@
       famButtons.set(f, b);
     }
     const pressFamily = (f) => famButtons.forEach((b, k) => b.setAttribute('aria-pressed', String(k === f)));
+
+    // --- music source buttons: music family at 1 with one source, exercises setSources ----
+    const srcBox = document.getElementById('sources');
+    const srcButtons = new Map();
+    for (const s of MUSIC_SOURCES) {
+      const b = document.createElement('button');
+      b.textContent = s;
+      b.dataset.source = s;
+      b.setAttribute('aria-pressed', 'false');
+      b.onclick = () => {
+        pressFamily('music'); pressSource(s);
+        renderer.setFamilies({ music: 1 });
+        renderer.setSources({ [s]: 1 });
+      };
+      srcBox.appendChild(b);
+      srcButtons.set(s, b);
+    }
+    const pressSource = (s) => srcButtons.forEach((b, k) => b.setAttribute('aria-pressed', String(k === s)));
+
+    const MIXES = {
+      empty: [{}, {}],
+      focus: [{ noise: 0.55, water: 0.35, music: 0.3 }, { lofi: 1 }],
+      music: [{ water: 0.3, music: 0.7 }, { synthwave: 0.5, chillhop: 0.5 }],
+    };
     document.querySelectorAll('[data-mix]').forEach((b) => {
       b.onclick = () => {
-        pressFamily(null);
-        renderer.setFamilies(b.dataset.mix === 'empty' ? {} : { noise: 0.55, water: 0.35, music: 0.3 });
+        pressFamily(null); pressSource(null);
+        const [families, sources] = MIXES[b.dataset.mix];
+        renderer.setFamilies(families);
+        renderer.setSources(sources);
       };
     });
 
