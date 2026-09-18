@@ -27,13 +27,20 @@
     <label>tone.freq <input type="range" id="freq" min="200" max="12000" value="4000" /> <span id="freqv">4000</span></label>
     <label>tone.width <input type="range" id="width" min="0" max="1" step="0.01" value="0.3" /></label>
   </div>
+  <div class="row" id="knobs"></div>
   <div class="row">
     <label>focusBoost.depth <input type="range" id="depth" min="0" max="1" step="0.01" value="0" /></label>
     <label>focusBoost.rateHz <input type="range" id="rate" min="12" max="20" step="0.1" value="16" /></label>
     <label>master <input type="range" id="master" min="0" max="1" step="0.01" value="0.7" /></label>
   </div>
   <div class="row">
-    <button id="barcheck">Lofi 3-minute bar check</button>
+    <select id="barsource">
+      <option value="lofi">lofi</option>
+      <option value="synthwave">synthwave</option>
+      <option value="house">house</option>
+      <option value="chillhop">chillhop</option>
+    </select>
+    <button id="barcheck">3-minute bar check</button>
     <span id="barstatus"></span>
   </div>
   <div id="log"></div>
@@ -51,6 +58,35 @@
 
     let ctx, fb, master;
     const live = {};                       // id -> SoundSource while playing
+
+    // Knobs of the electronic sources (issue #12): key, min, max, step, default.
+    const KNOBS = {
+      synthwave: [['synthwave.bpm', 84, 100, 1, 92], ['synthwave.tape', 0, 1, 0.01, 0.3], ['synthwave.pump', 0, 1, 0.01, 0.35], ['synthwave.arp', 0, 1, 0.01, 0.5]],
+      berlin: [['berlin.bpm', 70, 100, 1, 84], ['berlin.tape', 0, 1, 0.01, 0.4], ['berlin.pulse', 0, 1, 0.01, 0.3]],
+      house: [['house.bpm', 90, 110, 1, 100], ['house.tape', 0, 1, 0.01, 0.2], ['house.pump', 0, 1, 0.01, 0.5], ['house.filter', 0, 1, 0.01, 0.4]],
+      chillhop: [['chillhop.bpm', 60, 90, 1, 72], ['chillhop.tape', 0, 1, 0.01, 0.6], ['chillhop.pump', 0, 1, 0.01, 0.4], ['chillhop.crackle', 0, 1, 0.01, 0.5]],
+    };
+    const knobValue = {};                  // key -> current slider value
+    for (const [id, knobs] of Object.entries(KNOBS)) {
+      const row = document.createElement('div');
+      for (const [key, min, max, step, def] of knobs) {
+        knobValue[key] = def;
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        Object.assign(input, { type: 'range', min, max, step, value: def });
+        const readout = document.createElement('span');
+        readout.textContent = def;
+        input.addEventListener('input', () => {
+          const v = Number(input.value);
+          knobValue[key] = v;
+          readout.textContent = v;
+          live[id]?.setParam(key, v, 0.3);
+        });
+        label.append(key + ' ', input, ' ', readout);
+        row.appendChild(label);
+      }
+      $('knobs').appendChild(row);
+    }
     const ensureCtx = async () => {
       if (ctx) { if (ctx.state !== 'running') await ctx.resume(); return; }
       ctx = new AudioContext();
@@ -88,9 +124,12 @@
         src.setParam('lofi.bpm', Number($('bpm').value), 0);
         src.setParam('lofi.tape', Number($('tape').value), 0);
         src.setParam('lofi.pump', Number($('pump').value), 0);
+      }
+      for (const [key] of KNOBS[id] ?? []) src.setParam(key, knobValue[key], 0);
+      if ('onBar' in src) {
         src.onBar = (b) => {
-          log(`[sched] bar ${b.bar} @ ${b.time.toFixed(3)} s bpm ${b.bpm} pattern ${b.pattern} chord ${b.chord ?? '-'} sig ${b.signature}`);
-          barCheck?.(b);
+          log(`[sched] ${id} bar ${b.bar} @ ${b.time.toFixed(3)} s bpm ${b.bpm} pattern ${b.pattern} chord ${b.chord ?? '-'} sig ${b.signature}`);
+          if (id === barCheckId) barCheck?.(b);
         };
       }
       if (id === 'tone') {
@@ -107,8 +146,10 @@
       delete live[id];
     };
 
-    for (const id of ['drone', 'lofi', 'plucks', 'tone']) {
+    const buttons = {};
+    for (const id of Object.keys(MUSIC_SOURCES)) {
       const b = document.createElement('button');
+      buttons[id] = b;
       b.textContent = id;
       b.onclick = async () => {
         if (live[id]) { stop(id); b.classList.remove('on'); }
@@ -127,10 +168,14 @@
     bind('rate', (v) => fb?.set({ depth: Number($('depth').value), rateHz: v }));
     bind('master', (v) => { if (master) master.gain.linearRampToValueAtTime(v, ctx.currentTime + 0.1); });
 
-    // DoD: a 3-minute run of lofi must never schedule two identical consecutive bars.
+    // DoD: a 3-minute run of lofi / synthwave / house / chillhop must never
+    // schedule two identical consecutive bars (berlin repeats by design and is
+    // not in the list).
     let barCheck = null;
+    let barCheckId = 'lofi';
     $('barcheck').onclick = async () => {
-      if (!live.lofi) { await start('lofi'); $('sources').children[1].classList.add('on'); }
+      barCheckId = $('barsource').value;
+      if (!live[barCheckId]) { await start(barCheckId); buttons[barCheckId].classList.add('on'); }
       const bars = [];
       const t0 = ctx.currentTime;
       window.__barCheck = { done: false, pass: null, bars };
@@ -143,7 +188,7 @@
           for (let i = 1; i < bars.length; i++) if (bars[i] === bars[i - 1]) repeats++;
           const pass = repeats === 0 && bars.length > 40;
           window.__barCheck = { done: true, pass, bars, repeats };
-          const msg = `[barcheck] ${pass ? 'PASS' : 'FAIL'}: ${bars.length} bars, ${repeats} identical consecutive`;
+          const msg = `[barcheck] ${barCheckId} ${pass ? 'PASS' : 'FAIL'}: ${bars.length} bars, ${repeats} identical consecutive`;
           log(msg);
           $('barstatus').textContent = msg;
         }

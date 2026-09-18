@@ -60,7 +60,7 @@ export const PRESET_TABLE: Record<TaskPreset, PresetDef> = {
   },
   routine: {
     layers: [
-      { source: 'lofi', volume: 0.5, params: { 'lofi.bpm': 90 } },
+      { source: 'house', volume: 0.5, params: { 'house.bpm': 100 } },
       { source: 'fan', volume: 0.3 },
       none(),
       none(),

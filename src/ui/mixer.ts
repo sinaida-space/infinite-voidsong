@@ -12,7 +12,7 @@ const FAMILY_GROUPS: FamilyGroup[] = [
   { label: 'Air', sources: ['wind'] },
   { label: 'Fire', sources: ['campfire'] },
   { label: 'Places', sources: ['cafe', 'library', 'cabin', 'fan'] },
-  { label: 'Music', sources: ['drone', 'lofi', 'plucks'] },
+  { label: 'Music', sources: ['drone', 'lofi', 'plucks', 'synthwave', 'berlin', 'house', 'chillhop'] },
   { label: 'Tone', sources: ['tone'] },
 ];
 
@@ -32,6 +32,10 @@ const SOURCE_LABEL: Record<SourceId, string> = {
   drone: 'Drone',
   lofi: 'Lo-fi',
   plucks: 'Plucks',
+  synthwave: 'Synthwave',
+  berlin: 'Berlin',
+  house: 'House',
+  chillhop: 'Chillhop',
   tone: 'Tone',
 };
 
@@ -242,6 +246,29 @@ const PARAM_SPECS: Record<string, ParamSpec[]> = {
     { key: 'lofi.bpm', label: 'BPM', min: 60, max: 100, step: 1, default: 78, format: (v) => `${Math.round(v)}` },
     { key: 'lofi.tape', label: 'Tape', min: 0, max: 1, step: 0.01, default: 0.5, format: (v) => `${Math.round(v * 100)}%` },
     { key: 'lofi.pump', label: 'Pump', min: 0, max: 1, step: 0.01, default: 0.4, format: (v) => `${Math.round(v * 100)}%` },
+  ],
+  synthwave: [
+    { key: 'synthwave.bpm', label: 'BPM', min: 84, max: 100, step: 1, default: 92, format: (v) => `${Math.round(v)}` },
+    { key: 'synthwave.tape', label: 'Tape', min: 0, max: 1, step: 0.01, default: 0.3, format: (v) => `${Math.round(v * 100)}%` },
+    { key: 'synthwave.pump', label: 'Pump', min: 0, max: 1, step: 0.01, default: 0.35, format: (v) => `${Math.round(v * 100)}%` },
+    { key: 'synthwave.arp', label: 'Arp brightness', min: 0, max: 1, step: 0.01, default: 0.5, format: (v) => `${Math.round(v * 100)}%` },
+  ],
+  berlin: [
+    { key: 'berlin.bpm', label: 'BPM', min: 70, max: 100, step: 1, default: 84, format: (v) => `${Math.round(v)}` },
+    { key: 'berlin.tape', label: 'Tape', min: 0, max: 1, step: 0.01, default: 0.4, format: (v) => `${Math.round(v * 100)}%` },
+    { key: 'berlin.pulse', label: 'Pulse', min: 0, max: 1, step: 0.01, default: 0.3, format: (v) => `${Math.round(v * 100)}%` },
+  ],
+  house: [
+    { key: 'house.bpm', label: 'BPM', min: 90, max: 110, step: 1, default: 100, format: (v) => `${Math.round(v)}` },
+    { key: 'house.tape', label: 'Tape', min: 0, max: 1, step: 0.01, default: 0.2, format: (v) => `${Math.round(v * 100)}%` },
+    { key: 'house.pump', label: 'Pump', min: 0, max: 1, step: 0.01, default: 0.5, format: (v) => `${Math.round(v * 100)}%` },
+    { key: 'house.filter', label: 'Filter sweep', min: 0, max: 1, step: 0.01, default: 0.4, format: (v) => `${Math.round(v * 100)}%` },
+  ],
+  chillhop: [
+    { key: 'chillhop.bpm', label: 'BPM', min: 60, max: 90, step: 1, default: 72, format: (v) => `${Math.round(v)}` },
+    { key: 'chillhop.tape', label: 'Tape', min: 0, max: 1, step: 0.01, default: 0.6, format: (v) => `${Math.round(v * 100)}%` },
+    { key: 'chillhop.pump', label: 'Pump', min: 0, max: 1, step: 0.01, default: 0.4, format: (v) => `${Math.round(v * 100)}%` },
+    { key: 'chillhop.crackle', label: 'Crackle', min: 0, max: 1, step: 0.01, default: 0.5, format: (v) => `${Math.round(v * 100)}%` },
   ],
   tone: [
     {
