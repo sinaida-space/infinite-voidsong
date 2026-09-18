@@ -28,7 +28,7 @@ export function mountBanner(root: HTMLElement, options: MountBannerOptions = {})
   text.textContent = 'This site keeps your settings in your browser and nothing else.';
 
   const privacyLink = document.createElement('a');
-  privacyLink.href = '/privacy';
+  privacyLink.href = '/privacy.html';
   privacyLink.textContent = 'Privacy';
   text.appendChild(privacyLink);
 
