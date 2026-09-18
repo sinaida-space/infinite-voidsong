@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { encodeHash, decodeHash, type HashPayload } from './url';
-import { PRESET_TABLE } from './presets';
-import type { LayerState } from './types';
+import { PRESET_TABLE, applyPreset, type PresetContext } from './presets';
+import type { LayerState, TaskPreset } from './types';
 
 const payload: HashPayload = {
   layers: [
@@ -24,6 +24,24 @@ assert.deepStrictEqual(decoded, payload, 'round-trip encode/decode must be equal
 for (const [id, def] of Object.entries(PRESET_TABLE)) {
   const hasSound = def.layers.some((l) => l.source !== 'none');
   assert.ok(hasSound, `preset "${id}" must have at least one non-'none' layer`);
+}
+
+// applyPreset must not throw for any TaskPreset × PresetContext combination
+// (regression guard for the task-14 onboarding bug: a throw here left the
+// quiz's `finish()` mid-flight, so `onboarded`/`playback` never updated).
+const NOISE_ANSWERS: PresetContext['noise'][] = ['quiet', 'home', 'office', 'varies'];
+const OUTPUT_ANSWERS: PresetContext['output'][] = ['headphones', 'speakers'];
+
+for (const id of Object.keys(PRESET_TABLE) as TaskPreset[]) {
+  applyPreset(id); // no ctx
+  for (const noise of NOISE_ANSWERS) {
+    for (const output of OUTPUT_ANSWERS) {
+      assert.doesNotThrow(
+        () => applyPreset(id, { noise, output }),
+        `applyPreset("${id}", { noise: "${noise}", output: "${output}" }) must not throw`,
+      );
+    }
+  }
 }
 
 console.log('state selftest OK');
