@@ -11,8 +11,7 @@ is static, and every setting lives in your own browser.
 - Web Audio API for sound, WebGL for the reactive visual.
 - A plain-JS service worker (`public/sw.js`) for offline installs, precaching
   a build-time asset manifest written by a small Vite plugin.
-- Self-hosted fonts: Geist Pixel for UI, Libre Franklin Light for long-form
-  legal text.
+- Self-hosted font: Geist Pixel, everywhere.
 
 ## Development
 
@@ -29,6 +28,7 @@ npm run dev
 - `npm run check`, type check with TypeScript.
 - `npm run smoke`, verify build artifacts.
 - `npm run typo`, check typography (requires the typography skill).
+- `npm run dither`, regenerate the dithered 404 artwork from `404_images/`.
 
 ## Cloudflare Pages deployment
 

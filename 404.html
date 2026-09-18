@@ -11,13 +11,29 @@
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <main id="main" class="notfound">
-    <p class="notfound__code">404</p>
-    <p class="notfound__text">
-      This page does not exist. The sound is still playing back home.
-    </p>
-    <a class="notfound__home" href="/">Back to Infinite Voidsong</a>
+    <div class="notfound__panel">
+      <p class="notfound__bar" aria-hidden="true">SIGNAL LOST</p>
+      <div class="notfound__art">
+        <img id="notfound-image" class="notfound__image" alt="Dithered artwork" width="720" height="720" />
+        <div class="notfound__scanlines" aria-hidden="true"></div>
+      </div>
+      <div class="notfound__body">
+        <p class="notfound__code">404</p>
+        <p class="notfound__text">This page drifted out of the tunnel.</p>
+        <div class="notfound__actions">
+          <a class="notfound__home" href="/">Back to the tunnel</a>
+          <a
+            class="notfound__spotify"
+            href="https://open.spotify.com/playlist/2hAAtPLTKfYNHAN0KyUzTB"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Or listen to something cheerful on Spotify</a>
+        </div>
+      </div>
+    </div>
   </main>
   <div id="footer-root"></div>
   <script type="module" src="/src/ui/footer.ts"></script>
+  <script type="module" src="/src/ui/notfound-art.ts"></script>
 </body>
 </html>
