@@ -128,8 +128,11 @@ export class TunnelRenderer {
 
   private initGL(): void {
     const gl = this.gl ?? this.canvas.getContext('webgl2', {
+      // true: the rAF loop stops entirely while `still` (see tick()/animating), so without this
+      // the browser is free to clear the drawing buffer on the next composite and the tunnel
+      // goes black on pause/after deceleration instead of holding its last frame.
       alpha: false, antialias: false, depth: false, stencil: false,
-      premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: 'low-power',
+      premultipliedAlpha: false, preserveDrawingBuffer: true, powerPreference: 'low-power',
     });
     if (!gl) { console.warn('[voidsong] WebGL2 unavailable; tunnel disabled'); return; }
     this.gl = gl;
