@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://infinite-voidsong.example/</loc>
+    <loc>https://infinite-voidsong.pages.dev/</loc>
   </url>
   <url>
-    <loc>https://infinite-voidsong.example/privacy</loc>
+    <loc>https://infinite-voidsong.pages.dev/privacy.html</loc>
   </url>
   <url>
-    <loc>https://infinite-voidsong.example/shortcuts</loc>
+    <loc>https://infinite-voidsong.pages.dev/shortcuts.html</loc>
   </url>
 </urlset>

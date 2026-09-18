@@ -9,20 +9,12 @@
   --fog: #999999;
   --haze: #cccccc;
   --font-ui: 'Geist Pixel';
-  --font-legal: 'Libre Franklin';
 }
 
 @font-face {
   font-family: 'Geist Pixel';
   src: url('/fonts/GeistPixel.woff2') format('woff2');
   font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Libre Franklin';
-  src: url('/fonts/LibreFranklin-Light.woff2') format('woff2');
-  font-weight: 300;
   font-style: normal;
 }
 
