@@ -27,6 +27,8 @@ export interface FrameParams {
   beat: number;               // 0..1
   hue: RGB;                   // wall colour near the viewer (drifted)
   hueFar: RGB;                // wall colour deep in the tunnel (drifted)
+  lobeGain: number;           // per-ring lobe amplitude scale, follows the mid band (smoothed)
+  lobePhase: number;          // per-ring lobe drift, advances faster with the low band
   weights: Float32Array;      // 7 floats in FAMILIES order
   levels: [number, number, number, number];
 }
@@ -57,6 +59,8 @@ export class Reactive {
   private xfadeS = XFADE_SEC;
 
   private huePhase = 0;         // seconds of hue drift; advances only while the picture moves
+  private lobeGain = 0.6;
+  private lobePhase = 0;
 
   private decelT = 0;           // seconds since decelerating began
   private decelFrom = 1;        // speed scale at that moment
@@ -73,6 +77,7 @@ export class Reactive {
   readonly params: FrameParams = {
     speed: 0, lineBright: BASE_LINE_BRIGHT, grain: 0, widthAdd: 0, beat: 0,
     hue: blendHue(zeroWeights())[0], hueFar: blendHue(zeroWeights())[1],
+    lobeGain: 0.6, lobePhase: 0,
     weights: new Float32Array(7), levels: [0, 0, 0, 0],
   };
 
@@ -156,6 +161,14 @@ export class Reactive {
     if (!this.reducedMotion && this.motion !== 'still') this.huePhase += dt;
     const drift = HUE_DRIFT_DEG * Math.sin(this.huePhase * 2 * Math.PI * HUE_DRIFT_HZ);
     const [near, far] = blendHue(this.curW, blendMusicHue(this.curS));
+
+    // Per-ring lobes: amplitude follows the mid band, the drift phase runs faster on
+    // the low band; both under the 15 % cap / frozen with the picture so nothing strobes.
+    const moving = !this.reducedMotion && this.motion !== 'still';
+    this.lobeGain = approach(this.lobeGain, 0.6 + 0.8 * this.levels.mid);
+    if (moving) this.lobePhase += (0.04 + 0.12 * this.levels.low) * dt;
+    p.lobeGain = this.lobeGain;
+    p.lobePhase = this.lobePhase;
     p.hue = rotateHue(near, drift);
     p.hueFar = rotateHue(far, drift);
 

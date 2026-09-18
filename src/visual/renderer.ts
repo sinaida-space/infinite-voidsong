@@ -18,7 +18,7 @@ const DITHER_DEFAULT = 0.8;      // 0 smooth .. 1 fully dithered
 
 const UNIFORMS = [
   'uRes', 'uTime', 'uTravel', 'uSpeed', 'uFamily', 'uLevels', 'uBeat',
-  'uLineColor', 'uLineColorFar', 'uLineBright', 'uGrain', 'uWidthAdd', 'uDpr', 'uDither', 'uDitherScale',
+  'uLineColor', 'uLineColorFar', 'uLobe', 'uLineBright', 'uGrain', 'uWidthAdd', 'uDpr', 'uDither', 'uDitherScale',
 ] as const;
 type UniformName = typeof UNIFORMS[number];
 
@@ -251,6 +251,7 @@ export class TunnelRenderer {
     gl.uniform1f(L.uBeat!, p.beat);
     gl.uniform3f(L.uLineColor!, p.hue[0], p.hue[1], p.hue[2]);
     gl.uniform3f(L.uLineColorFar!, p.hueFar[0], p.hueFar[1], p.hueFar[2]);
+    gl.uniform2f(L.uLobe!, p.lobeGain, p.lobePhase);
     gl.uniform1f(L.uLineBright!, p.lineBright);
     gl.uniform1f(L.uGrain!, p.grain);
     gl.uniform1f(L.uWidthAdd!, p.widthAdd);
