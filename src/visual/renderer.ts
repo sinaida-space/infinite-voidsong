@@ -3,10 +3,9 @@
 // The rAF loop runs only while something moves: still, reduced motion and a hidden tab
 // all stop it after one frame.
 
-import type { AppState } from '../state/types';
-import type { Family } from '../state/types';
+import type { AppState, Family } from '../state/types';
 import type { Bus } from '../state/events';
-import { normalizeWeights, weightsFromState } from './families';
+import { deriveVisualWeights, normalizeWeights, type SourceWeights } from './families';
 import { Reactive, type Motion } from './reactive';
 import vertSrc from './shaders/tunnel.vert.glsl?raw';
 import fragSrc from './shaders/tunnel.frag.glsl?raw';
@@ -19,7 +18,7 @@ const DITHER_DEFAULT = 0.8;      // 0 smooth .. 1 fully dithered
 
 const UNIFORMS = [
   'uRes', 'uTime', 'uTravel', 'uSpeed', 'uFamily', 'uLevels', 'uBeat',
-  'uLineColor', 'uLineBright', 'uGrain', 'uWidthAdd', 'uDpr', 'uDither', 'uDitherScale',
+  'uLineColor', 'uLineColorFar', 'uLineBright', 'uGrain', 'uWidthAdd', 'uDpr', 'uDither', 'uDitherScale',
 ] as const;
 type UniformName = typeof UNIFORMS[number];
 
@@ -67,6 +66,13 @@ export class TunnelRenderer {
     this.requestFrame();
   }
 
+  /** Music source weights (any subset, e.g. { synthwave: 1 }); they colour the music
+   *  family's share of the tunnel and crossfade internally over 3 s. */
+  setSources(weights: SourceWeights): void {
+    this.reactive.setSources(weights);
+    this.requestFrame();
+  }
+
   /** running | decelerating (8 s ease-out, then still) | still (one frame, loop stops). */
   setMotion(m: Motion): void {
     this.reactive.setMotion(m);
@@ -109,7 +115,9 @@ export class TunnelRenderer {
   // --- bus -------------------------------------------------------------------
 
   private applyState(next: AppState): void {
-    this.reactive.setFamilies(weightsFromState(next));
+    const { families, sources } = deriveVisualWeights(next);
+    this.reactive.setFamilies(normalizeWeights(families));
+    this.reactive.setSources(sources);
     this.reactive.reducedMotion = next.reducedMotion;
     this.requestFrame();
   }
@@ -242,6 +250,7 @@ export class TunnelRenderer {
     gl.uniform4f(L.uLevels!, p.levels[0], p.levels[1], p.levels[2], p.levels[3]);
     gl.uniform1f(L.uBeat!, p.beat);
     gl.uniform3f(L.uLineColor!, p.hue[0], p.hue[1], p.hue[2]);
+    gl.uniform3f(L.uLineColorFar!, p.hueFar[0], p.hueFar[1], p.hueFar[2]);
     gl.uniform1f(L.uLineBright!, p.lineBright);
     gl.uniform1f(L.uGrain!, p.grain);
     gl.uniform1f(L.uWidthAdd!, p.widthAdd);

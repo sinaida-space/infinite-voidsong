@@ -3,7 +3,10 @@
 // and reads the resulting FrameParams into uniforms.
 
 import type { LevelFrame } from '../state/events';
-import { FAMILIES, blendHue, blendSpeed, zeroWeights, type Weights } from './families';
+import {
+  FAMILIES, MUSIC_SOURCES, blendHue, blendMusicHue, blendSpeed, normalizeSources, rotateHue,
+  zeroWeights, type RGB, type SourceWeights, type Weights,
+} from './families';
 
 export type Motion = 'running' | 'decelerating' | 'still';
 
@@ -13,6 +16,8 @@ const BEAT_MS = 300;          // uBeat decay
 const MAX_STEP = 0.15;        // no modulated value changes more than 15 % frame to frame
 const MAX_LINE_BRIGHT = 0.85; // text on top must stay legible
 const BASE_LINE_BRIGHT = 0.80;
+const HUE_DRIFT_DEG = 8;      // slow hue wander so no colour sits static
+const HUE_DRIFT_HZ = 0.01;
 
 export interface FrameParams {
   speed: number;              // forward speed, 0 when still
@@ -20,7 +25,8 @@ export interface FrameParams {
   grain: number;              // noise-family grain amount
   widthAdd: number;           // music-family beat width boost
   beat: number;               // 0..1
-  hue: [number, number, number];
+  hue: RGB;                   // wall colour near the viewer (drifted)
+  hueFar: RGB;                // wall colour deep in the tunnel (drifted)
   weights: Float32Array;      // 7 floats in FAMILIES order
   levels: [number, number, number, number];
 }
@@ -43,6 +49,15 @@ export class Reactive {
   private curW: Weights = zeroWeights();
   private xfadeT = XFADE_SEC;   // seconds into the current crossfade; ≥ XFADE_SEC = done
 
+  // Music source weights, crossfaded like the families (own clock: a source change can
+  // arrive mid family crossfade).
+  private targetS = normalizeSources({});
+  private fromS = normalizeSources({});
+  private curS = normalizeSources({});
+  private xfadeS = XFADE_SEC;
+
+  private huePhase = 0;         // seconds of hue drift; advances only while the picture moves
+
   private decelT = 0;           // seconds since decelerating began
   private decelFrom = 1;        // speed scale at that moment
 
@@ -57,7 +72,8 @@ export class Reactive {
 
   readonly params: FrameParams = {
     speed: 0, lineBright: BASE_LINE_BRIGHT, grain: 0, widthAdd: 0, beat: 0,
-    hue: blendHue(zeroWeights()), weights: new Float32Array(7), levels: [0, 0, 0, 0],
+    hue: blendHue(zeroWeights())[0], hueFar: blendHue(zeroWeights())[1],
+    weights: new Float32Array(7), levels: [0, 0, 0, 0],
   };
 
   /** New family targets; crossfaded over 3 s from wherever the current blend is. */
@@ -65,6 +81,13 @@ export class Reactive {
     this.fromW = { ...this.curW };
     this.targetW = { ...w };
     this.xfadeT = 0;
+  }
+
+  /** New music-source targets (any subset of MUSIC_SOURCES); crossfaded over 3 s. */
+  setSources(s: SourceWeights): void {
+    this.fromS = { ...this.curS };
+    this.targetS = normalizeSources(s);
+    this.xfadeS = 0;
   }
 
   setMotion(m: Motion): void {
@@ -84,7 +107,7 @@ export class Reactive {
     this.lastBeatIn = l.beat;
   }
 
-  get crossfading(): boolean { return this.xfadeT < XFADE_SEC; }
+  get crossfading(): boolean { return this.xfadeT < XFADE_SEC || this.xfadeS < XFADE_SEC; }
 
   /** True while anything on screen still needs new frames. */
   get animating(): boolean {
@@ -109,7 +132,14 @@ export class Reactive {
       for (const f of FAMILIES) this.curW[f] = this.fromW[f] + (this.targetW[f] - this.fromW[f]) * k;
     }
     FAMILIES.forEach((f, i) => { p.weights[i] = this.curW[f]; });
-    p.hue = blendHue(this.curW);
+
+    // Source crossfade (same curve) feeds the music family's [near, far] hue
+    if (this.xfadeS < XFADE_SEC) {
+      this.xfadeS = Math.min(XFADE_SEC, this.xfadeS + dt);
+      const x = this.xfadeS / XFADE_SEC;
+      const k = x * x * (3 - 2 * x);
+      for (const s of MUSIC_SOURCES) this.curS[s] = this.fromS[s] + (this.targetS[s] - this.fromS[s]) * k;
+    }
 
     // Motion: running → full scale; decelerating → cubic ease-out over 8 s, then still
     let scale = 0;
@@ -121,6 +151,14 @@ export class Reactive {
     }
     if (this.reducedMotion) scale = 0;
 
+    // Hue: family blend with the source blend inside the music slot, then a slow ±8°
+    // wander that freezes with the picture (still frame / reduced motion).
+    if (!this.reducedMotion && this.motion !== 'still') this.huePhase += dt;
+    const drift = HUE_DRIFT_DEG * Math.sin(this.huePhase * 2 * Math.PI * HUE_DRIFT_HZ);
+    const [near, far] = blendHue(this.curW, blendMusicHue(this.curS));
+    p.hue = rotateHue(near, drift);
+    p.hueFar = rotateHue(far, drift);
+
     const L = this.levels;
     const wNoise = this.curW.noise;
     const wMusic = this.curW.music;
@@ -129,8 +167,9 @@ export class Reactive {
     this.beatAge += dt;
     const beat = Math.max(0, 1 - (this.beatAge * 1000) / BEAT_MS);
 
-    // Targets from the spec's mapping, then rate-limited to 15 % per frame
-    const speedTarget = blendSpeed(this.curW) * (0.9 + 0.2 * L.low) * scale;
+    // Targets from the spec's mapping, then rate-limited to 15 % per frame.
+    // The low band leans on the forward push (±15 % around the family speed).
+    const speedTarget = blendSpeed(this.curW) * (0.85 + 0.3 * L.low) * scale;
     const brightTarget = Math.min(MAX_LINE_BRIGHT, BASE_LINE_BRIGHT * (0.92 + 0.12 * L.rms));
     const grainTarget = wNoise * 0.6 * (1 + 0.5 * L.high);
     const widthTarget = 0.3 * beat * wMusic;
