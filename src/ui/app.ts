@@ -1,24 +1,11 @@
-import { bus } from '../state/events';
 import { mountMixer } from './mixer';
 import { mountMaster } from './master';
 import { mountTransport } from './transport';
 import { initShortcuts } from './shortcuts';
 
-function mountToasts(root: HTMLElement): void {
-  const toastRoot = document.createElement('div');
-  toastRoot.className = 'toast-root';
-  toastRoot.setAttribute('aria-live', 'polite');
-  toastRoot.setAttribute('role', 'status');
-  root.appendChild(toastRoot);
-
-  bus.on('ui:toast', ({ text, ms }) => {
-    const toast = document.createElement('p');
-    toast.className = 'toast';
-    toast.textContent = text;
-    toastRoot.appendChild(toast);
-    setTimeout(() => toast.remove(), ms);
-  });
-}
+// Toasts are rendered by ritual.ts's mountToast(), mounted once from main.ts —
+// this module used to have its own `ui:toast` listener, which meant every
+// toast rendered twice. Don't add another one here.
 
 export function mountApp(root: HTMLElement): void {
   root.innerHTML = '';
@@ -55,7 +42,6 @@ export function mountApp(root: HTMLElement): void {
   mountMixer(mixerMount);
   mountMaster(masterMount);
   mountTransport(transportMount);
-  mountToasts(root);
 
   initShortcuts();
 }
