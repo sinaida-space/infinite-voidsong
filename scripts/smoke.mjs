@@ -118,10 +118,10 @@ check('dist/index.html has no banned font names', () => {
   if (hit) throw new Error(`found banned font "${hit}"`);
 });
 
-// --- 19 source keys ----------------------------------------------------------
+// --- source keys ----------------------------------------------------------
 
 const EXPECTED_SOURCE_KEYS = [
-  'noise', 'rain', 'ocean', 'stream', 'underwater', 'wind', 'campfire',
+  'noise', 'rain', 'thunder', 'ocean', 'stream', 'underwater', 'wind', 'birds', 'crickets', 'campfire',
   'cafe', 'library', 'cabin', 'fan', 'drone', 'lofi', 'plucks',
   'synthwave', 'berlin', 'house', 'chillhop', 'tone',
 ];
