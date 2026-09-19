@@ -4,8 +4,9 @@
 // which every page sets. Safari 26 dropped that tag: it now looks for a
 // `position: fixed` element hugging the top and the bottom edge of the
 // viewport and takes its background colour. These two strips are that
-// element. They are never painted (`visibility: hidden` does not stop Safari
-// from sampling them), take no clicks, and are hidden from screen readers.
+// element. They take no clicks and are hidden from screen readers. On Apple
+// browsers they are painted as a 4px red edge (an unpainted strip gave no tint
+// on a real phone); everywhere else they stay invisible. See chrome.css.
 
 export function mountTint(): void {
   if (typeof document === 'undefined' || document.querySelector('.browser-tint')) return;
