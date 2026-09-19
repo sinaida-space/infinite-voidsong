@@ -48,6 +48,10 @@ const DIST_FILES = [
   'dist/404.html',
   'dist/sw.js',
   'dist/og.png',
+  'dist/favicon.ico',
+  'dist/favicon.svg',
+  'dist/apple-touch-icon.png',
+  'dist/icons/maskable-512.png',
 ];
 
 for (const file of DIST_FILES) {
