@@ -2,7 +2,7 @@
   "name": "Infinite Voidsong",
   "short_name": "Voidsong",
   "display": "standalone",
-  "theme_color": "#050505",
+  "theme_color": "#cd0000",
   "background_color": "#050505",
   "scope": "/",
   "start_url": "/",
@@ -18,6 +18,13 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "description": "Endless generated soundscapes for focused work. Made by Sinaida (https://sinaida.eu)"
 }

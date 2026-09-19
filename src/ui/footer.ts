@@ -4,6 +4,8 @@
 // More) over quieter body text and links. `__APP_VERSION__` and
 // `__BUILD_MONTH__` are injected at build time (see vite.config.ts).
 
+import { mountTint } from './tint';
+
 declare const __APP_VERSION__: string;
 declare const __BUILD_MONTH__: string;
 
@@ -105,6 +107,7 @@ export function mountFooter(root: HTMLElement, options: FooterOptions = {}): HTM
 // the main app mounts it itself in main.ts.
 if (typeof document !== 'undefined') {
   const boot = () => {
+    mountTint();
     const root = document.getElementById('footer-root');
     if (root) mountFooter(root);
   };
