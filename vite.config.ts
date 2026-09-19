@@ -8,7 +8,7 @@ const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')
 // domain once it exists. Kept in one place so canonical/OG URLs and
 // sitemap.xml agree; sitemap.xml is a static file so it repeats the same
 // string rather than reading this constant.
-const SITE_URL = 'https://infinite-voidsong.pages.dev/';
+const SITE_URL = 'https://infinite-voidsong.vercel.app/';
 
 // Not computed from the clock on purpose — the footer shows the month this
 // build shipped, not the month it happens to render.

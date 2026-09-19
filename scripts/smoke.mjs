@@ -45,7 +45,6 @@ const DIST_FILES = [
   'dist/404.html',
   'dist/sw.js',
   'dist/og.png',
-  'dist/_headers',
 ];
 
 for (const file of DIST_FILES) {
@@ -54,10 +53,10 @@ for (const file of DIST_FILES) {
   });
 }
 
-// --- _headers has a CSP -----------------------------------------------------
+// --- vercel.json has a CSP -----------------------------------------------------
 
-check('dist/_headers contains Content-Security-Policy', () => {
-  const headers = readFile('dist/_headers');
+check('vercel.json sets a Content-Security-Policy', () => {
+  const headers = readFile('vercel.json');
   if (!/Content-Security-Policy/i.test(headers)) throw new Error('missing CSP header');
 });
 

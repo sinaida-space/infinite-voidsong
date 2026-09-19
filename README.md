@@ -1,5 +1,7 @@
 # Infinite Voidsong
 
+**Try it live: [infinite-voidsong.vercel.app](https://infinite-voidsong.vercel.app/)**
+
 Endless generated soundscapes for focused work. Layer noise, water, fire,
 place, and music sources into a mix, save it as a preset, and let it run.
 Nothing renders server-side, and nothing is tracked: the whole application
@@ -30,15 +32,13 @@ npm run dev
 - `npm run typo`, check typography (requires the typography skill).
 - `npm run dither`, regenerate the dithered 404 artwork from `404_images/`.
 
-## Cloudflare Pages deployment
+## Vercel deployment
 
-1. Connect this GitHub repository in the Cloudflare Pages dashboard.
-2. Framework preset: **Vite**.
-3. Build command: `npm run build`.
-4. Build output directory: `dist`.
-5. Node version: **20**.
-6. `public/_headers` ships with the build and Pages picks it up automatically,
-   so no extra configuration is needed for security headers.
+1. Import this GitHub repository in the Vercel dashboard.
+2. Framework preset: **Vite**. Build command `npm run build`, output directory `dist` (both come from `vercel.json`).
+3. Node version: **20**.
+4. Security headers (CSP and others) are set by `vercel.json`, so no extra configuration is needed.
+5. `404.html` in the build output is served for unknown routes automatically.
 
 ## License
 

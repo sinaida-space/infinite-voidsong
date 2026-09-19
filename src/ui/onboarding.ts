@@ -101,9 +101,20 @@ async function typeLine(container: HTMLElement, text: string, className?: string
   return el;
 }
 
-/** Mounts the first-visit welcome and quiz overlay. No-ops once `onboarded` is already true. */
-export function mountOnboarding(root?: HTMLElement): void {
-  if (store.get().onboarded) return;
+export interface OnboardingOptions {
+  /** Reopen the welcome from the footer: Skip just closes, nothing is reset. */
+  replay?: boolean;
+}
+
+/** Reopens the welcome screen on demand (footer link). Skip closes it without touching the current mix. */
+export function showWelcome(): void {
+  mountOnboarding(undefined, { replay: true });
+}
+
+/** Mounts the first-visit welcome and quiz overlay. No-ops once `onboarded` is already true, unless replaying. */
+export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions = {}): void {
+  if (store.get().onboarded && !options.replay) return;
+  if (document.querySelector('.term')) return;
 
   const container = root ?? findRootOrCreate('onboarding');
   container.innerHTML = '';
@@ -166,11 +177,15 @@ export function mountOnboarding(root?: HTMLElement): void {
 
   function finish(task: TaskPreset, noise: NoiseAnswer, output: OutputAnswer): void {
     applyPreset(task, { noise, output });
-    store.set((s) => ({ ...s, onboarded: true, playback: 'starting' }));
+    store.set((s) => ({ ...s, onboarded: true, playback: s.playback === 'playing' ? s.playback : 'starting' }));
     teardown();
   }
 
   function skip(): void {
+    if (options.replay) {
+      teardown();
+      return;
+    }
     finish(DEFAULT_TASK, DEFAULT_NOISE, DEFAULT_OUTPUT);
   }
 
