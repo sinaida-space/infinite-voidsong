@@ -19,11 +19,16 @@ const BOOT_PROMPT_LINE = '> all sound is generated in this browser. nothing leav
 
 const WELCOME_COPY =
   `Infinite Voidsong generates endless soundscapes right in${NBSP}your browser, built to${NBSP}sit behind ` +
-  `focused work. Timed sessions carry real breaks between the${NBSP}working stretches. What settles one ` +
-  `person may leave another restless, and${NBSP}the${NBSP}right mix shifts with the${NBSP}task. There are ` +
-  `no${NBSP}accounts and${NBSP}no${NBSP}tracking: everything stays on${NBSP}your device. Three short ` +
-  `questions tune a${NBSP}starting mix for${NBSP}what you are about to${NBSP}do, and${NBSP}you can change ` +
-  `any of${NBSP}it${NBSP}once you begin.`;
+  `focused work. No${NBSP}accounts and no${NBSP}tracking: everything stays on${NBSP}your device.`;
+
+const BASIS_COPY =
+  `Built on published research about background sound and attention. Quiet, steady sound tends to${NBSP}suit ` +
+  `reading and writing, instrumental music routine work and idea generation, and speech is always left out. ` +
+  `Effects differ between people, so treat every mix as${NBSP}a starting point.`;
+
+const SESSIONS_COPY =
+  `Choose a timed session in${NBSP}the Session window: 25/5, 50/10 or 90/15 minutes of${NBSP}work and${NBSP}break. ` +
+  `When the${NBSP}work ends the sound fades and a real break begins. The guide explains which to${NBSP}use.`;
 
 const HOW_TO_MOVE = `Space play/pause · 1–6 presets · ↑↓ volume · H hide the${NBSP}interface · ? guide`;
 
@@ -123,12 +128,24 @@ export function mountOnboarding(root?: HTMLElement): void {
   bootLog.className = 'term__boot';
   body.appendChild(bootLog);
 
+  // Quick tuning sits on a red ground so the eye lands on it.
+  const tuning = document.createElement('section');
+  tuning.className = 'term__tuning';
+  tuning.hidden = true;
+  tuning.setAttribute('aria-label', 'Quick tuning');
+  body.appendChild(tuning);
+
+  const tuningLabel = document.createElement('p');
+  tuningLabel.className = 'term__section';
+  tuningLabel.textContent = 'Quick tuning';
+  tuning.appendChild(tuningLabel);
+
   const log = document.createElement('div');
   log.className = 'term__log';
-  body.appendChild(log);
+  tuning.appendChild(log);
 
   const activeStep = document.createElement('div');
-  body.appendChild(activeStep);
+  tuning.appendChild(activeStep);
 
   const actions = document.createElement('div');
   actions.className = 'term__actions';
@@ -157,20 +174,17 @@ export function mountOnboarding(root?: HTMLElement): void {
     finish(DEFAULT_TASK, DEFAULT_NOISE, DEFAULT_OUTPUT);
   }
 
-  function renderActions(showEnter: boolean): void {
+  function renderActions(primary: { label: string; onClick: () => void } | null): HTMLButtonElement | null {
     actions.innerHTML = '';
 
-    if (showEnter) {
-      const enterBtn = document.createElement('button');
-      enterBtn.type = 'button';
-      enterBtn.className = 'term__enter';
-      enterBtn.textContent = 'Enter';
-      enterBtn.addEventListener('click', () => {
-        if (answers.task && answers.noise && answers.output) {
-          finish(answers.task, answers.noise, answers.output);
-        }
-      });
-      actions.appendChild(enterBtn);
+    let primaryBtn: HTMLButtonElement | null = null;
+    if (primary) {
+      primaryBtn = document.createElement('button');
+      primaryBtn.type = 'button';
+      primaryBtn.className = 'term__enter';
+      primaryBtn.textContent = primary.label;
+      primaryBtn.addEventListener('click', primary.onClick);
+      actions.appendChild(primaryBtn);
     }
 
     const skipBtn = document.createElement('button');
@@ -185,6 +199,18 @@ export function mountOnboarding(root?: HTMLElement): void {
     privacy.href = '/privacy.html';
     privacy.textContent = 'Privacy';
     actions.appendChild(privacy);
+    return primaryBtn;
+  }
+
+  function enterAction(): { label: string; onClick: () => void } {
+    return {
+      label: 'Enter',
+      onClick: () => {
+        if (answers.task && answers.noise && answers.output) {
+          finish(answers.task, answers.noise, answers.output);
+        }
+      },
+    };
   }
 
   function echo(label: string): void {
@@ -232,7 +258,7 @@ export function mountOnboarding(root?: HTMLElement): void {
       }
     });
 
-    renderActions(false);
+    renderActions(null);
   }
 
   function renderReady(): void {
@@ -249,7 +275,7 @@ export function mountOnboarding(root?: HTMLElement): void {
       }
     });
 
-    renderActions(true);
+    renderActions(enterAction());
   }
 
   function renderStep(): void {
@@ -270,38 +296,59 @@ export function mountOnboarding(root?: HTMLElement): void {
     }
   }
 
+  function labelled(label: string, text: string): HTMLParagraphElement {
+    const p = document.createElement('p');
+    p.className = 'term__copy';
+    const tag = document.createElement('span');
+    tag.className = 'term__guide-label';
+    tag.textContent = label;
+    p.append(tag, ` · ${text}`);
+    return p;
+  }
+
+  /** Second screen: what it is, what it rests on, sessions, then the red quick-tuning panel. */
+  function showBriefing(): void {
+    setKeyHandler(null);
+    bootLog.remove();
+
+    const title = document.createElement('h1');
+    title.className = 'term__title glitch';
+    title.dataset.text = 'INFINITE VOIDSONG';
+    title.textContent = 'INFINITE VOIDSONG';
+    body.insertBefore(title, tuning);
+
+    const copy = document.createElement('p');
+    copy.className = 'term__copy';
+    copy.textContent = WELCOME_COPY;
+    body.insertBefore(copy, tuning);
+
+    body.insertBefore(labelled('BASED ON', BASIS_COPY), tuning);
+    body.insertBefore(labelled('SESSIONS', SESSIONS_COPY), tuning);
+
+    const guide = document.createElement('p');
+    guide.className = 'term__guide';
+    guide.innerHTML = `<span class="term__guide-label">HOW TO MOVE</span> · ${HOW_TO_MOVE}`;
+    body.insertBefore(guide, tuning);
+
+    tuning.hidden = false;
+    renderStep();
+    tuning.scrollIntoView({ block: 'nearest' });
+  }
+
   async function runIntro(): Promise<void> {
-    renderActions(false);
-    const skipBtn = actions.querySelector<HTMLButtonElement>('.term__skip');
-    skipBtn?.focus();
+    renderActions(null);
 
     for (const line of BOOT_LINES) {
       await typeLine(bootLog, line);
     }
     await typeLine(bootLog, BOOT_PROMPT_LINE, 'term__boot-line--prompt');
 
-    const title = document.createElement('h1');
-    title.className = 'term__title glitch';
-    title.dataset.text = 'INFINITE VOIDSONG';
-    title.textContent = 'INFINITE VOIDSONG';
-    body.insertBefore(title, log);
-
-    const copy = document.createElement('p');
-    copy.className = 'term__copy';
-    copy.textContent = WELCOME_COPY;
-    body.insertBefore(copy, log);
-
-    const guide = document.createElement('p');
-    guide.className = 'term__guide';
-    guide.innerHTML = `<span class="term__guide-label">HOW TO MOVE</span> · ${HOW_TO_MOVE}`;
-    body.insertBefore(guide, log);
-
-    const section = document.createElement('p');
-    section.className = 'term__section';
-    section.textContent = 'Quick tuning';
-    body.insertBefore(section, log);
-
-    renderStep();
+    // First screen is only the boot log; Continue (or Enter) opens the briefing.
+    const continueBtn = renderActions({ label: 'Continue', onClick: showBriefing });
+    continueBtn?.focus();
+    setKeyHandler((e) => {
+      if (e.key === 'Enter') showBriefing();
+    });
   }
 
   container.appendChild(overlay);

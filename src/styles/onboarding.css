@@ -193,6 +193,46 @@
   color: var(--fog);
 }
 
+/* Quick tuning: red ground, chalk text, so attention lands here. */
+.term__tuning {
+  padding: 16px 18px 18px;
+  background: var(--red);
+  color: var(--chalk);
+  text-shadow: none;
+}
+
+.term__tuning[hidden] {
+  display: none;
+}
+
+.term__tuning .term__section,
+.term__tuning .term__prompt,
+.term__tuning .term__echo,
+.term__tuning .term__option,
+.term__tuning .term__option-key {
+  color: var(--chalk);
+}
+
+.term__tuning .term__section {
+  font-size: 12px;
+}
+
+.term__tuning .term__option {
+  padding: 6px 12px;
+  border: 1px solid rgba(246, 246, 246, 0.75);
+}
+
+.term__tuning .term__option:hover,
+.term__tuning .term__option:focus-visible {
+  background: var(--chalk);
+  color: var(--void);
+}
+
+.term__tuning .term__option:hover .term__option-key,
+.term__tuning .term__option:focus-visible .term__option-key {
+  color: var(--void);
+}
+
 @media (max-width: 600px) {
   .term {
     padding: 5vh 5vw;
