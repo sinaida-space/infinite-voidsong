@@ -1,0 +1,24 @@
+{
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "license": "CC0 1.0",
+  "files": [
+    { "id": "stream", "title": "Small Stream", "author": "Joseph SARDIN", "startSec": 5,
+      "sourceUrl": "https://bigsoundbank.com/small-stream-s0823.html",
+      "licenseLine": "CC0 (public domain): Free and royalty-free", "sourceDownload": "https://bigsoundbank.com/UPLOAD/mp3/0823.mp3" },
+    { "id": "rain", "title": "Summer Rain on Terrace", "author": "Joseph SARDIN", "startSec": 96,
+      "sourceUrl": "https://bigsoundbank.com/sound-1019-summer-rain-on-terrace.html",
+      "licenseLine": "CC0 (public domain): Free and royalty-free", "sourceDownload": "https://bigsoundbank.com/UPLOAD/mp3/1019.mp3" },
+    { "id": "thunder", "title": "Rain and Thunder #2", "author": "Joseph SARDIN", "startSec": 50,
+      "sourceUrl": "https://bigsoundbank.com/rain-and-storm-2-s0740.html",
+      "licenseLine": "CC0 (public domain): Free and royalty-free", "sourceDownload": "https://bigsoundbank.com/UPLOAD/mp3/0740.mp3" },
+    { "id": "birds", "title": "Birds Waking #3", "author": "Joseph SARDIN", "startSec": 185,
+      "sourceUrl": "https://bigsoundbank.com/detail-0999-wake-birds-3.html",
+      "licenseLine": "CC0 (public domain): Free and royalty-free", "sourceDownload": "https://bigsoundbank.com/UPLOAD/mp3/0999.mp3" },
+    { "id": "crickets", "title": "Campaign at Night #4", "author": "Joseph SARDIN", "startSec": 100,
+      "sourceUrl": "https://bigsoundbank.com/campaign-at-night-4-s1880.html",
+      "licenseLine": "CC0 (public domain): Free and royalty-free", "sourceDownload": "https://bigsoundbank.com/UPLOAD/mp3/1880.mp3" },
+    { "id": "wind", "title": "Wind in the Trees", "author": "Joseph SARDIN", "startSec": 45,
+      "sourceUrl": "https://bigsoundbank.com/forest-wind-in-the-trees-s0904.html",
+      "licenseLine": "CC0 (public domain): Free and royalty-free", "sourceDownload": "https://bigsoundbank.com/UPLOAD/mp3/0904.mp3" }
+  ]
+}
