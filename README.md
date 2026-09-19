@@ -2,6 +2,9 @@
 
 **Try it live: [infinite-voidsong.vercel.app](https://infinite-voidsong.vercel.app/)**
 
+<img width="3072" height="384" alt="image" src="https://github.com/user-attachments/assets/41f61e04-e350-43bd-91c7-79927264cf92" />
+
+
 Endless generated soundscapes for focused work. Layer noise, water, fire,
 place, and music sources into a mix, save it as a preset, and let it run.
 Nothing renders server-side, and nothing is tracked: the whole application
