@@ -124,13 +124,13 @@ export function applyPreset(id: TaskPreset, ctx?: PresetContext): void {
     master = clamp01(master - 0.05);
   }
 
-  const session: SessionState = {
+  const session = {
     timer: def.timer,
-    phase: 'free',
+    phase: 'free' as const,
     phaseEndsAt: null,
     warmup: def.warmup ?? false,
     sleepEndsAt: def.sleepMinutes ? Date.now() + def.sleepMinutes * 60000 : null,
-  };
+  } satisfies Omit<SessionState, 'customWork' | 'customBreak'>;
 
   store.set(
     (s: AppState): AppState => ({
@@ -139,7 +139,8 @@ export function applyPreset(id: TaskPreset, ctx?: PresetContext): void {
       master: { volume: master },
       focusBoost: { depth: def.boost, rateHz: s.focusBoost.rateHz || 16 },
       preset: id,
-      session,
+      // A preset never overwrites the user's own custom session lengths.
+      session: { ...session, customWork: s.session.customWork, customBreak: s.session.customBreak },
     }),
   );
 }

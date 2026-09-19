@@ -15,7 +15,7 @@ function defaultState(): AppState {
     master: { volume: 0.5 },
     focusBoost: { depth: 0, rateHz: 16 },
     preset: null,
-    session: { timer: null, phase: 'free', phaseEndsAt: null, warmup: false, sleepEndsAt: null },
+    session: { timer: null, customWork: 40, customBreak: 8, phase: 'free', phaseEndsAt: null, warmup: false, sleepEndsAt: null },
     onboarded: false,
     noticeDismissed: false,
     reducedMotion: false,

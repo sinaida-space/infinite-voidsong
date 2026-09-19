@@ -1,4 +1,4 @@
-/* Onboarding terminal boot sequence. Owns #onboarding's contents only. */
+/* Welcome: a short boot log, then one dialog (mode + session) over a dithered star field. */
 
 .term {
   position: fixed;
@@ -7,11 +7,12 @@
   display: flex;
   justify-content: center;
   overflow-y: auto;
-  padding: 6vh 5vw;
+  /* Generous bottom padding: the storage notice is fixed above the overlay and must not hide Begin. */
+  padding: 6vh 5vw 13rem;
   background: var(--void);
   color: var(--chalk);
   font-family: var(--font-ui), 'Courier New', monospace;
-  text-shadow: 0 0 6px rgba(205, 0, 0, 0.35);
+  text-shadow: 0 0 6px rgba(205, 0, 0, 0.3);
 }
 
 .term::after {
@@ -23,15 +24,29 @@
   background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.05) 1.5px, rgba(0, 0, 0, 0) 3px);
 }
 
+/* Stars sit behind everything, in coarse dithered cells. */
+.term__stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  image-rendering: pixelated;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
 .term__body {
   position: relative;
   width: 100%;
-  max-width: 720px;
+  max-width: 760px;
 }
 
 .term__body > * + * {
   margin-top: 14px;
 }
+
+/* Boot log */
 
 .term__boot {
   color: var(--haze);
@@ -44,99 +59,157 @@
   color: var(--red-text);
 }
 
-.term__cursor {
-  display: inline-block;
-  animation: term-blink 1.1s steps(1) infinite;
-}
-
-@keyframes term-blink {
-  50% {
-    opacity: 0;
-  }
-}
-
+/* Neon logo: a hot core and two wider halos. */
 .term__title {
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   font-size: clamp(32px, 7vw, 56px);
   line-height: 1.1;
   letter-spacing: 0.01em;
-  color: var(--red-text);
 }
 
-/* Minimal fallback so the title reads well before task 15 lands the
-   animated .glitch treatment elsewhere; this rule is intentionally plain. */
-.term .glitch {
-  color: var(--red-text);
-  text-shadow: 0 0 10px rgba(205, 0, 0, 0.45);
+.term .term__title.glitch {
+  color: #ff3b3b;
+  text-shadow:
+    0 0 6px rgba(255, 60, 60, 0.7),
+    0 0 18px rgba(205, 0, 0, 0.6),
+    0 0 42px rgba(205, 0, 0, 0.35);
 }
 
 .term__copy {
   max-width: 62ch;
-  font-family: var(--font-ui), 'Courier New', monospace;
   font-size: 15px;
   line-height: 1.55;
   color: var(--haze);
+  text-shadow: none;
 }
 
-.term__guide {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--fog);
-}
-
-.term__guide-label {
+.term__link {
   color: var(--red-text);
 }
 
-.term__section {
-  font-size: 11px;
+/* The dialog: a flat window like the ones in the app. */
+
+.term__dialog {
+  padding: 18px 18px 20px;
+  background: rgba(5, 5, 5, 0.9);
+  border-top: 1px solid var(--red);
+  text-shadow: none;
+}
+
+.term__label {
+  margin: 0 0 10px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--red-text);
 }
 
-.term__log p {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.6;
+.term__dialog .term__label:not(:first-child) {
+  margin-top: 22px;
 }
 
-.term__echo {
-  color: var(--fog);
+.choice-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
-.term__prompt {
-  color: var(--chalk);
-  font-size: 14px;
-  line-height: 1.5;
+@media (min-width: 640px) {
+  .choice-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-.term__options {
+.choice {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 18px;
-  margin-top: 8px;
-}
-
-.term__option {
-  padding: 4px 2px;
-  border: none;
-  background: none;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--gunmetal);
+  background: transparent;
   color: var(--chalk);
   font-family: inherit;
-  font-size: 14px;
+  text-align: left;
   cursor: pointer;
 }
 
-.term__option-key {
+.choice__name {
+  font-size: 16px;
+  color: var(--chalk);
+}
+
+.choice__blurb {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fog);
+}
+
+.choice:hover,
+.choice:focus-visible {
+  border-color: var(--fog);
+}
+
+.choice[aria-pressed='true'] {
+  border-color: var(--red);
+  background: rgba(205, 0, 0, 0.14);
+}
+
+.choice[aria-pressed='true'] .choice__name {
   color: var(--red-text);
 }
 
-.term__option:hover,
-.term__option:focus-visible {
-  color: var(--red-text);
-  outline: none;
+.choice[aria-pressed='true'] .choice__blurb {
+  color: var(--haze);
 }
+
+.term__dialog .timer__custom {
+  margin: 12px 0 0;
+}
+
+.term__note {
+  margin: 14px 0 0;
+  max-width: 62ch;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--slate);
+}
+
+.term__more {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--fog);
+}
+
+.term__more summary {
+  cursor: pointer;
+  width: fit-content;
+}
+
+.term__more-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 12px;
+}
+
+.term__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--chalk);
+}
+
+.term__select {
+  padding: 6px 8px;
+  border: 1px solid var(--gunmetal);
+  background: var(--void);
+  color: var(--chalk);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+/* Actions */
 
 .term__actions {
   display: flex;
@@ -144,15 +217,16 @@
   align-items: center;
   gap: 18px;
   margin-top: 20px;
+  text-shadow: none;
 }
 
 .term__enter {
-  padding: 10px 22px;
+  padding: 12px 28px;
   border: 1px solid var(--red);
-  background: transparent;
-  color: var(--red-text);
+  background: var(--red);
+  color: var(--chalk);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
@@ -160,8 +234,8 @@
 
 .term__enter:hover,
 .term__enter:focus-visible {
-  background: var(--red);
-  color: var(--chalk);
+  background: transparent;
+  color: var(--red-text);
   outline: none;
 }
 
@@ -169,7 +243,7 @@
   border: none;
   background: none;
   color: var(--slate);
-  font-family: var(--font-ui), 'Courier New', monospace;
+  font-family: inherit;
   font-size: 13px;
   text-decoration: underline;
   cursor: pointer;
@@ -183,7 +257,6 @@
 
 .term__privacy {
   color: var(--slate);
-  font-family: var(--font-ui), 'Courier New', monospace;
   font-size: 12px;
   text-decoration: underline;
 }
@@ -193,74 +266,9 @@
   color: var(--fog);
 }
 
-/* Stars sit behind the text, in coarse dithered cells. */
-.term__stars {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  width: 100vw;
-  height: 100vh;
-  image-rendering: pixelated;
-  pointer-events: none;
-  opacity: 0.85;
-}
-
-/* Neon logo: a hot core and two wider halos. */
-.term .term__title.glitch {
-  color: #ff3b3b;
-  text-shadow:
-    0 0 6px rgba(255, 60, 60, 0.7),
-    0 0 18px rgba(205, 0, 0, 0.6),
-    0 0 42px rgba(205, 0, 0, 0.35);
-}
-
-.term__link {
-  color: var(--red-text);
-}
-
-/* Quick tuning: red ground, chalk text, so attention lands here. */
-.term__tuning {
-  padding: 16px 18px 18px;
-  background: var(--red);
-  color: var(--chalk);
-  text-shadow: none;
-}
-
-.term__tuning[hidden] {
-  display: none;
-}
-
-.term__tuning .term__section,
-.term__tuning .term__prompt,
-.term__tuning .term__echo,
-.term__tuning .term__option,
-.term__tuning .term__option-key {
-  color: var(--chalk);
-}
-
-.term__tuning .term__section {
-  font-size: 12px;
-}
-
-.term__tuning .term__option {
-  padding: 6px 12px;
-  border: 1px solid rgba(246, 246, 246, 0.75);
-}
-
-.term__tuning .term__option:hover,
-.term__tuning .term__option:focus-visible {
-  background: var(--chalk);
-  color: var(--void);
-}
-
-.term__tuning .term__option:hover .term__option-key,
-.term__tuning .term__option:focus-visible .term__option-key {
-  color: var(--void);
-}
-
 @media (max-width: 600px) {
   .term {
-    padding: 5vh 5vw;
+    padding: 5vh 4vw 13rem;
   }
 
   .term__title {
