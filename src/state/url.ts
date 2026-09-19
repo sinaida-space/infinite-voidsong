@@ -1,10 +1,11 @@
-import type { FocusBoost, LayerState, MasterState, TaskPreset } from './types';
+import type { FocusBoost, HarmonyMode, LayerState, MasterState, TaskPreset } from './types';
 
 export interface HashPayload {
   layers: [LayerState, LayerState, LayerState, LayerState];
   master: MasterState;
   focusBoost: FocusBoost;
   preset: TaskPreset | null;
+  harmony?: HarmonyMode;   // absent in links made before Harmony existed
 }
 
 function toBase64Url(json: string): string {
