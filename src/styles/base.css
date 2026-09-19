@@ -128,7 +128,7 @@ body::after {
   inset: 0;
   z-index: 500;
   pointer-events: none;
-  background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, 0.12) 2px 4px);
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.045) 1.5px, rgba(0, 0, 0, 0) 3px);
 }
 
 /* CRT glitch — fires briefly every few seconds on the two headings that
