@@ -134,10 +134,12 @@
   background-color: #cd0000;
   visibility: hidden;
   pointer-events: none;
-  z-index: 5;
+  /* Behind the page content and the tunnel canvas (z-index -1): Safari still reads the
+     colour, but the strip is never seen crossing the content while you scroll. */
+  z-index: -2;
 }
 
-/* Apple browsers only (iOS and macOS Safari): a real, painted 4px red edge.
+/* Apple browsers only (iOS and macOS Safari): a real, rendered 4px red edge, kept out of sight behind the page.
    Safari 26 does not reliably tint from an unpainted element, and an
    unpainted one gave no red at all on a real phone. Other browsers never see it. */
 @supports (font: -apple-system-body) {
