@@ -9,7 +9,7 @@ Live: https://infinite-voidsong.vercel.app/
 Infinite Voidsong plays sound that is generated live in the browser with the Web Audio API. There are no recordings and no loops, so nothing repeats in a way you can hear and nothing is downloaded beyond the page itself. You mix up to four layers at once.
 
 - Noise: white to brown, with a tilt control.
-- Water, air and fire: rain, ocean, stream, underwater, wind, campfire with crickets.
+- Nature: rain, ocean, stream, underwater, wind, campfire with crickets.
 - Places: café, library, train cabin, fan hum. The murmur is built to be unintelligible.
 - Music: generative drone, lo-fi, plucks, synthwave, Berlin-school sequencer, house and chillhop. All instrumental, steady, with no drops.
 - Tone: one steady tone with adjustable pitch.
