@@ -283,7 +283,7 @@
 }
 
 .play-btn {
-  border: 1px solid var(--chalk);
+  border: 1px solid var(--gunmetal); /* the same as Share, Guide and Hide UI */
   width: 100%;
   height: 60px;
   align-self: stretch;
@@ -295,10 +295,6 @@
   justify-content: center;
 }
 
-.play-btn[aria-pressed='true'] {
-  background: var(--chalk);
-  color: var(--void);
-}
 
 .transport__actions {
   display: grid;
