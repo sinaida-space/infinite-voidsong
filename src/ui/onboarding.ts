@@ -2,7 +2,7 @@ import '../styles/onboarding.css';
 import type { TaskPreset, TimerPreset } from '../state/types';
 import { store } from '../state/store';
 import { applyPreset } from '../state/presets';
-import { startTimer, setCustomDurations, CUSTOM_WORK_RANGE, CUSTOM_BREAK_RANGE } from '../state/session';
+import { startTimer, setWarmup, setCustomDurations, CUSTOM_WORK_RANGE, CUSTOM_BREAK_RANGE } from '../state/session';
 import { createStars } from './stars';
 import { mountFooter } from './footer';
 
@@ -103,6 +103,11 @@ const SESSIONS: SessionDef[] = [
   },
 ];
 
+const WARMUP_LABEL = 'Warm-up first (10 min)';
+const WARMUP_NOTE =
+  `Ten minutes of easy start before the first work block. They come on${NBSP}top of the session length, so 25/5 with a${NBSP}warm-up is ` +
+  `10 minutes of warm-up, then 25 of${NBSP}work. The sound stays the same and there is no signal when it ends. Timed sessions only.`;
+
 const SESSIONS_NOTE =
   `No study fixes the perfect length. These are common working conventions, so try more than${NBSP}one. ` +
   `What research does support is taking real breaks.`;
@@ -184,6 +189,7 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
   const choice = {
     mode: 'deep-focus' as TaskPreset,
     session: '50/10' as SessionChoice,
+    warmup: false,
     sessionTouched: false, // once you pick a session yourself, changing the mode stops changing it
     noise: 'home' as NoiseAnswer,
     output: 'headphones' as OutputAnswer,
@@ -248,6 +254,8 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
       playback: s.playback === 'playing' ? s.playback : 'starting',
       session: choice.session === 'untimed' ? { ...s.session, timer: null } : s.session,
     }));
+    // The warm-up exists for Creative flow and timed sessions only.
+    setWarmup(choice.warmup && choice.mode === 'creative-flow' && choice.session !== 'untimed');
     if (choice.session !== 'untimed') startTimer(choice.session);
     teardown();
   }
@@ -345,6 +353,23 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
       modeGrid.appendChild(card);
     }
 
+    // Warm-up: only Creative flow offers it, and only with a timed session ----------------
+    const warmBox = document.createElement('label');
+    warmBox.className = 'term__warm';
+    warmBox.hidden = true;
+    const warmHead = document.createElement('span');
+    warmHead.className = 'term__warm-head';
+    const warmInput = document.createElement('input');
+    warmInput.type = 'checkbox';
+    warmInput.addEventListener('change', () => { choice.warmup = warmInput.checked; });
+    const warmLabel = document.createElement('span');
+    warmLabel.textContent = WARMUP_LABEL;
+    warmHead.append(warmInput, warmLabel);
+    const warmNote = document.createElement('span');
+    warmNote.className = 'term__warm-note';
+    warmNote.textContent = WARMUP_NOTE;
+    warmBox.append(warmHead, warmNote);
+
     // Session ------------------------------------------------------------------------
     const sessionLabel = document.createElement('p');
     sessionLabel.className = 'term__label';
@@ -440,7 +465,7 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
     const outputSection = choiceSection('4 · Listening on', 'Listening on', OUTPUTS, () => choice.output, (v) => { choice.output = v; });
 
     dialog.append(
-      modeLabel, modeGrid,
+      modeLabel, modeGrid, warmBox,
       sessionLabel, sessionGrid, custom, note,
       spaceSection.label, spaceSection.grid,
       outputSection.label, outputSection.grid,
@@ -450,6 +475,7 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
       for (const [id, card] of modeCards) card.setAttribute('aria-pressed', String(id === choice.mode));
       for (const [id, card] of sessionCards) card.setAttribute('aria-pressed', String(id === choice.session));
       custom.hidden = choice.session !== 'custom';
+      warmBox.hidden = !(choice.mode === 'creative-flow' && choice.session !== 'untimed');
       spaceSection.sync();
       outputSection.sync();
     }

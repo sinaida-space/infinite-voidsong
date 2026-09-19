@@ -180,6 +180,35 @@ html:has(.term) {
   color: var(--slate);
 }
 
+/* Warm-up choice under the mode cards (Creative flow only). */
+.term__warm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--graphite);
+  cursor: pointer;
+}
+
+.term__warm[hidden] {
+  display: none;
+}
+
+.term__warm-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--chalk);
+}
+
+.term__warm-note {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--fog);
+}
+
 /* The footer under the dialog: Begin gets clear space above it, and the red glow stays off the text. */
 .term__footer {
   margin-top: 56px;

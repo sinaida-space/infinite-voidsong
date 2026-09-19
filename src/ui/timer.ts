@@ -22,6 +22,8 @@ function buildWinBar(title: string): HTMLDivElement {
   return bar;
 }
 
+const NBSP = '\u00a0';
+
 const TIMER_PRESETS: TimerPreset[] = ['25/5', '50/10', '90/15'];
 
 const pct = (v: number): string => `${Math.min(100, Math.max(0, v * 100)).toFixed(2)}%`;
@@ -215,7 +217,13 @@ export function mountTimer(root?: HTMLElement): void {
   warmupWrap.appendChild(warmupText);
   row.appendChild(warmupWrap);
 
+  const warmupNote = document.createElement('p');
+  warmupNote.className = 'timer__warmup-note';
+  warmupNote.hidden = true;
+  warmupNote.textContent = `Adds 10 minutes before the first work block, on${NBSP}top of the session length. The sound stays the same and there is no signal when it ends.`;
+
   body.appendChild(row);
+  body.appendChild(warmupNote);
 
   const hintLine = document.createElement('p');
   hintLine.className = 'timer__hint-line';
@@ -283,6 +291,7 @@ export function mountTimer(root?: HTMLElement): void {
       ? `Warm-up, then ${Math.round(wtl.workMs / 60000)} min of work`
       : PHASE_LABEL[session.phase];
     warmupWrap.hidden = preset !== 'creative-flow';
+    warmupNote.hidden = warmupWrap.hidden;
     warmupInput.checked = session.warmup;
 
     const inRitual = session.phase === 'break' || session.phase === 'resume-cue';

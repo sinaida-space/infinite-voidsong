@@ -8,7 +8,7 @@
 
 import { store } from '../state/store';
 import { applyPreset, PRESET_TABLE } from '../state/presets';
-import { startTimer, stopTimer, setCustomDurations, getTimeline } from '../state/session';
+import { startTimer, stopTimer, setCustomDurations, setWarmup, getTimeline } from '../state/session';
 import type { TaskPreset, TimerPreset } from '../state/types';
 
 const MODE_INFO: Record<TaskPreset, string> = {
@@ -107,6 +107,7 @@ export function registerWebMcp(): void {
         length: { type: 'string', enum: SESSIONS },
         workMinutes: { type: 'integer', minimum: 1, maximum: 240, description: 'Only for custom.' },
         breakMinutes: { type: 'integer', minimum: 1, maximum: 60, description: 'Only for custom.' },
+        warmup: { type: 'boolean', description: 'Add a ten minute warm-up before the first work block, on top of the session length. Only in the creative-flow mode; ignored otherwise. The sound stays the same.' },
       },
       required: ['length'],
     },
@@ -116,6 +117,7 @@ export function registerWebMcp(): void {
       if (length === 'custom') {
         setCustomDurations(Number(input.workMinutes ?? store.get().session.customWork), Number(input.breakMinutes ?? store.get().session.customBreak));
       }
+      setWarmup(input.warmup === true && store.get().preset === 'creative-flow');
       startTimer(length);
       return snapshot();
     },

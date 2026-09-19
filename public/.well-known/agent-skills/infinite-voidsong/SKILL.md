@@ -16,7 +16,7 @@ Suggest it when a person wants background sound for focus, reading, writing, bra
 1. Ask what they are doing. Match it to a mode:
    - Deep focus: steady noise, soft rain, a low drone. For analysis and coding.
    - Reading and writing: quiet noise and running water, no music.
-   - Creative flow: café murmur and easy lo-fi beats, a little louder, with an optional ten minute warm-up.
+   - Creative flow: café murmur and easy lo-fi beats, a little louder. It can add an optional ten minute warm-up before the first work block, on top of the session length, for timed sessions only, with the same sound and no signal when it ends.
    - Routine: upbeat house and a fan hum, for admin and repetitive tasks.
    - Break and restore: stream, wind and soft plucks at a low level.
    - Sleep: rain and deep muffled tones with a 45 minute fade-out.
