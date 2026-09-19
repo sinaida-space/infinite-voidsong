@@ -12,12 +12,16 @@ type SessionChoice = TimerPreset | 'untimed';
 
 const NBSP = '\u00a0';
 
+declare const __APP_VERSION__: string;
+// Major.minor of the build (1.2.0 shows as 1.2), so the boot line never goes stale.
+const BOOT_VERSION = (typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.0.0').split('.').slice(0, 2).join('.');
+
 const BOOT_LINES = [
-  'VOIDSONG/1.1 · boot',
+  `VOIDSONG/${BOOT_VERSION} · boot`,
   'audio engine ........ ok',
   'tunnel renderer ...... ok',
   'storage ............. local only',
-  'network ............. none',
+  'network ............. own files only',
 ];
 const BOOT_PROMPT_LINE = '> sound is generated here or played from short field recordings. nothing leaves your device.';
 
