@@ -132,7 +132,16 @@
   background-color: #cd0000;
   visibility: hidden;
   pointer-events: none;
-  z-index: 0;
+  z-index: 5;
+}
+
+/* Apple browsers only (iOS and macOS Safari): a real, painted 4px red edge.
+   Safari 26 does not reliably tint from an unpainted element, and an
+   unpainted one gave no red at all on a real phone. Other browsers never see it. */
+@supports (font: -apple-system-body) {
+  .browser-tint {
+    visibility: visible;
+  }
 }
 
 .browser-tint--top {
