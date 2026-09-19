@@ -56,6 +56,15 @@ body {
   grid-area: timer;
 }
 
+/* Stacked layout: the session window lines up with the app column above it. */
+@media (max-width: 959px) {
+  #timer {
+    width: min(100%, 1100px);
+    margin: 0 auto;
+    padding: 0 16px 24px;
+  }
+}
+
 #footer {
   grid-area: footer;
 }
