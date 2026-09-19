@@ -18,6 +18,7 @@ import { attachLook } from './visual/look';
 import { mountOnboarding, showWelcome } from './ui/onboarding';
 import { mountToast } from './ui/ritual';
 import { mountBanner } from './ui/banner';
+import { registerWebMcp } from './ui/webmcp';
 import { mountMediaSession } from './ui/mediasession';
 import { mountFooter } from './ui/footer';
 import { mountGuide, openGuide } from './ui/guide';
@@ -46,6 +47,7 @@ mountBanner(el('banner'), {
 mountFooter(el('footer'), { onWelcome: showWelcome });
 mountGuide(el('guide'));
 mountMediaSession();
+registerWebMcp(); // tools for in-browser AI agents (draft WebMCP API; no-op elsewhere)
 
 // `/?welcome=1` (footer link on the other pages) reopens the welcome screen.
 if (new URLSearchParams(location.search).get('welcome') === '1') {

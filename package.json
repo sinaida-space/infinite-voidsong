@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && tsx scripts/build-agent-files.ts",
     "preview": "vite preview",
     "check": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs",

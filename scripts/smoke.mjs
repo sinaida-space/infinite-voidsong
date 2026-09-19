@@ -3,6 +3,7 @@
 // Node only: no browser, no built module graph import. Assumes `vite build`
 // has already run (`npm run smoke` composes with `npm run build` upstream;
 // this script itself does not build).
+import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'fs';
 import { resolve } from 'path';
 
@@ -49,6 +50,12 @@ const DIST_FILES = [
   'dist/sw.js',
   'dist/og-v2.png',
   'dist/favicon.ico',
+  'dist/llms.txt',
+  'dist/index.md',
+  'dist/guide.md',
+  'dist/.well-known/ai-catalog.json',
+  'dist/.well-known/agent-skills/index.json',
+  'dist/.well-known/agent-skills/infinite-voidsong/SKILL.md',
   'dist/favicon.svg',
   'dist/apple-touch-icon.png',
   'dist/icons/maskable-512.png',
@@ -65,6 +72,25 @@ for (const file of DIST_FILES) {
 check('vercel.json sets a Content-Security-Policy', () => {
   const headers = readFile('vercel.json');
   if (!/Content-Security-Policy/i.test(headers)) throw new Error('missing CSP header');
+});
+
+// --- agent discovery ---------------------------------------------------------------
+
+check('vercel.json sends a Link header on the homepage', () => {
+  const cfg = JSON.parse(readFile('vercel.json'));
+  const home = cfg.headers.find((h) => h.source === '/');
+  if (!home?.headers.some((h) => h.key === 'Link' && /rel="describedby"/.test(h.value))) throw new Error('no Link header on /');
+});
+
+check('robots.txt declares Content-Signal', () => {
+  if (!/^Content-Signal:.*ai-train=/m.test(readFile('dist/robots.txt'))) throw new Error('no Content-Signal line');
+});
+
+check('skills index digest matches SKILL.md', () => {
+  const idx = JSON.parse(readFile('dist/.well-known/agent-skills/index.json'));
+  const body = readFileSync(path('dist/.well-known/agent-skills/infinite-voidsong/SKILL.md'));
+  const want = 'sha256:' + createHash('sha256').update(body).digest('hex');
+  if (idx.skills?.[0]?.digest !== want) throw new Error('digest mismatch');
 });
 
 // --- index.html content ------------------------------------------------------
