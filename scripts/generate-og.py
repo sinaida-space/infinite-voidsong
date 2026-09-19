@@ -7,12 +7,13 @@ Run from the repo root:  python3 scripts/generate-og.py
 """
 import random
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
 FONT_TTF = ROOT / "scripts" / "fonts" / "GeistPixel-Regular.ttf"   # Geist Pixel, SIL Open Font License
-SOURCE = ROOT / "404_images" / "slopter_44.png"
+SOURCE = ROOT / "404_images" / "slopter_81.png"
 OUT = ROOT / "public" / "og.png"
+CROP_TOP = 0.0   # 0 = keep the top of the picture, 1 = the bottom (where the face sits differs per monster)
 
 VOID = (5, 5, 5)
 RED = (205, 0, 0)
@@ -27,7 +28,8 @@ BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
 
 def dither(img: Image.Image) -> Image.Image:
     """Two-tone ordered dither, same rule as subject_001/src/lib/ditherPreview.ts."""
-    gray = img.convert("L")
+    # Stretch the tones first: soft, low-contrast art otherwise dithers into mush.
+    gray = ImageOps.autocontrast(img.convert("L"), cutoff=2)
     out = Image.new("RGB", gray.size, VOID)
     px, src = out.load(), gray.load()
     for y in range(gray.height):
@@ -64,7 +66,7 @@ def main() -> None:
     scale = max(tw / src.width, th / src.height)
     resized = src.resize((round(src.width * scale), round(src.height * scale)), Image.Resampling.LANCZOS)
     left = (resized.width - tw) // 2
-    top = int((resized.height - th) * 0.55)
+    top = int((resized.height - th) * CROP_TOP)
     crop = resized.crop((left, top, left + tw, top + th))
     panel = dither(crop).resize((panel_w, panel_h), Image.Resampling.NEAREST)
     canvas.paste(panel.convert("RGBA"), (PANEL_X, 0))
