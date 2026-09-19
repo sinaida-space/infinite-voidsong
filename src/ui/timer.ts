@@ -210,7 +210,7 @@ export function mountTimer(root?: HTMLElement): void {
   warmupInput.type = 'checkbox';
   warmupInput.addEventListener('change', () => setWarmup(warmupInput.checked));
   const warmupText = document.createElement('span');
-  warmupText.textContent = 'Warm-up (10 min)';
+  warmupText.textContent = 'Warm-up first (10 min)';
   warmupWrap.appendChild(warmupInput);
   warmupWrap.appendChild(warmupText);
   row.appendChild(warmupWrap);
@@ -277,7 +277,11 @@ export function mountTimer(root?: HTMLElement): void {
       }
     }
 
-    phaseLabel.textContent = PHASE_LABEL[session.phase];
+    // The warm-up comes before the work block and is not on the timeline, so say what follows it.
+    const wtl = getTimeline();
+    phaseLabel.textContent = session.phase === 'warmup' && wtl
+      ? `Warm-up, then ${Math.round(wtl.workMs / 60000)} min of work`
+      : PHASE_LABEL[session.phase];
     warmupWrap.hidden = preset !== 'creative-flow';
     warmupInput.checked = session.warmup;
 
