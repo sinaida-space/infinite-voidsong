@@ -5,7 +5,7 @@
 
 import type { AppState, Family } from '../state/types';
 import type { Bus } from '../state/events';
-import { deriveVisualWeights, normalizeWeights, type SourceWeights } from './families';
+import { deriveVisualWeights, normalizeWeights, PRESET_HUE, type SourceWeights } from './families';
 import { Reactive, type Motion } from './reactive';
 import vertSrc from './shaders/tunnel.vert.glsl?raw';
 import fragSrc from './shaders/tunnel.frag.glsl?raw';
@@ -142,6 +142,7 @@ export class TunnelRenderer {
     const { families, sources } = deriveVisualWeights(next);
     this.reactive.setFamilies(normalizeWeights(families));
     this.reactive.setSources(sources);
+    this.reactive.setPalette(next.preset ? PRESET_HUE[next.preset] : null);
     this.reactive.reducedMotion = next.reducedMotion;
     this.requestFrame();
   }

@@ -1,7 +1,7 @@
 // Family and source tables and weight derivation for the tunnel.
 // Family order is fixed and shared with the shader's uFamily[7] array.
 
-import { FAMILY_OF, type AppState, type Family, type SourceId } from '../state/types';
+import { FAMILY_OF, type AppState, type Family, type SourceId, type TaskPreset } from '../state/types';
 
 export const FAMILIES: readonly Family[] = ['noise', 'water', 'air', 'fire', 'place', 'music', 'tone'];
 
@@ -35,6 +35,17 @@ export const SOURCE_HUE: Record<MusicSource, [RGB, RGB]> = {
   berlin:    [hex('#8a6cff'), hex('#8a6cff')],   // violet
   house:     [hex('#2e7bff'), hex('#2e7bff')],   // electric blue
   chillhop:  [hex('#c9773a'), hex('#c9773a')],   // dusty orange
+};
+
+// A colour scheme for each preset: [near the walls, far in the depth]. While a preset is
+// chosen, the tunnel wears its scheme instead of the family and source colours.
+export const PRESET_HUE: Record<TaskPreset, [RGB, RGB]> = {
+  'deep-focus':      [hex('#4a6cff'), hex('#2ee6ff')],   // indigo blue into cyan: cool, clear
+  'reading-writing': [hex('#e0a458'), hex('#f2d7a0')],   // lamp amber into pale gold: paper
+  'creative-flow':   [hex('#ff2e88'), hex('#ffb347')],   // magenta into orange: warm, lively
+  routine:           [hex('#5be37d'), hex('#2ee6c8')],   // green into mint: steady, upbeat
+  'break-restore':   [hex('#a78bfa'), hex('#7ad7f0')],   // soft violet into sky: calm
+  sleep:             [hex('#5b48c8'), hex('#233a8f')],   // deep indigo into night blue
 };
 
 // Neutral gray tunnel for an empty mix (brand Fog).
