@@ -22,7 +22,7 @@ export class Layer {
   private readonly outgoing = new Set<Slot>();
   private readonly timers = new Set<ReturnType<typeof setTimeout>>();
 
-  constructor(private readonly ctx: AudioContext, dest: AudioNode) {
+  constructor(private readonly ctx: AudioContext, dest: AudioNode, private readonly index = 0) {
     this.output = new GainNode(ctx, { gain: 0 });
     this.output.connect(dest);
   }
@@ -41,7 +41,7 @@ export class Layer {
     this.current = null;
     if (!factory) return;
 
-    const source = factory(this.ctx);
+    const source = factory(this.ctx, this.index);
     const gain = new GainNode(this.ctx, { gain: 0 });
     source.connect(gain);
     gain.connect(this.output);

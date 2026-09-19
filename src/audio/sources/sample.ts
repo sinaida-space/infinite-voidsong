@@ -66,6 +66,26 @@ const saveData = (): boolean => {
   return !!c?.saveData;
 };
 
+// Per-slot variation. The buffer is shared, so without this four Birds layers
+// would play one recording four times. Each mixer slot gets its own colour of
+// the same file: a small pitch/speed offset, a stereo position and a
+// brightness tilt (slot 0 is the recording as it is). A seeded jitter on top
+// keeps the offsets from being round numbers and stable for a given file + slot.
+const SLOT_RATE = [1, 0.955, 1.045, 0.985];   // playbackRate: about a quarter to a semitone apart
+const SLOT_PAN = [0, -0.4, 0.4, -0.2];
+const SLOT_TILT_DB = [0, -3, 2.5, -1.5];      // high shelf at 4 kHz
+
+function seeded(file: string, slot: number): () => number {
+  let h = 2166136261 ^ (slot * 7919);
+  for (let i = 0; i < file.length; i++) h = Math.imul(h ^ file.charCodeAt(i), 16777619);
+  return () => {                              // mulberry32
+    h = (h + 0x6D2B79F5) | 0;
+    let t = Math.imul(h ^ (h >>> 15), 1 | h);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 interface Pass { src: AudioBufferSourceNode; gain: GainNode }
 
 class SampleSource extends BaseSource {
@@ -80,6 +100,8 @@ class SampleSource extends BaseSource {
   private synthUntil = -1;            // audio time after which the fallback can be disposed
   private firstPass = true;
   private readonly sampleLevel: number;
+  private readonly rate: number;
+  private readonly voice: BiquadFilterNode;   // slot brightness tilt, the entry of the sample path
 
   constructor(
     id: SourceId,
@@ -87,12 +109,20 @@ class SampleSource extends BaseSource {
     fallback: SourceFactory,
     ctx: AudioContext,
     trimDb: number,
+    slot: number,
   ) {
     // The trim lives on the sample path only: the fallback synth is already at nominal level.
     super(id, FAMILY_OF[id as Exclude<SourceId, 'none'>], ctx, 0);
     this.sampleLevel = dB(trimDb);
     this.sampleGain = this.own(new GainNode(ctx, { gain: this.sampleLevel }));
     this.sampleGain.connect(this.env);
+
+    const s = slot % SLOT_RATE.length;
+    const rnd = seeded(file, slot);
+    this.rate = SLOT_RATE[s] * (1 + (rnd() - 0.5) * 0.014);
+    this.voice = this.own(new BiquadFilterNode(ctx, { type: 'highshelf', frequency: 4000, gain: SLOT_TILT_DB[s] + (rnd() - 0.5) }));
+    const pan = this.own(new StereoPannerNode(ctx, { pan: SLOT_PAN[s] }));
+    this.voice.connect(pan).connect(this.sampleGain);
 
     this.entry = acquire(file);
     if (this.entry.buf) {
@@ -156,12 +186,12 @@ class SampleSource extends BaseSource {
   private bookPass(t: number): number {
     const buf = this.buffer!;
     const offset = Math.random() * buf.duration / 2;
-    const len = buf.duration - offset;
+    const len = (buf.duration - offset) / this.rate;   // seconds of output, the rate stretches it
     const first = this.firstPass;
     this.firstPass = false;
-    const src = new AudioBufferSourceNode(this.ctx, { buffer: buf });
+    const src = new AudioBufferSourceNode(this.ctx, { buffer: buf, playbackRate: this.rate });
     const gain = new GainNode(this.ctx, { gain: first ? 1 : 0 });
-    src.connect(gain).connect(this.sampleGain);
+    src.connect(gain).connect(this.voice);
     if (!first) gain.gain.setValueCurveAtTime(CURVE_IN, t, XFADE);
     gain.gain.setValueCurveAtTime(CURVE_OUT, t + len - XFADE, XFADE);
     const pass: Pass = { src, gain };
@@ -192,5 +222,5 @@ class SampleSource extends BaseSource {
  * synths' nominal level.
  */
 export function sampleLayer(id: SourceId, file: string, fallback: SourceFactory, opts: { trimDb?: number } = {}): SourceFactory {
-  return (ctx) => new SampleSource(id, file, fallback, ctx, opts.trimDb ?? 8);
+  return (ctx, layerIndex = 0) => new SampleSource(id, file, fallback, ctx, opts.trimDb ?? 8, layerIndex);
 }

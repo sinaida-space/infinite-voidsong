@@ -56,7 +56,7 @@ export class AudioEngine {
     this.ctx = new AudioContext({ latencyHint: 'playback' });
     this.graph = buildGraph(this.ctx);
     this.focusBoosts = [0, 1, 2, 3].map(() => focusBoostNode(this.ctx));
-    this.layers = [0, 1, 2, 3].map((i) => new Layer(this.ctx, this.focusBoosts[i].input));
+    this.layers = [0, 1, 2, 3].map((i) => new Layer(this.ctx, this.focusBoosts[i].input, i));
     this.focusBoosts.forEach((fb) => fb.output.connect(this.graph.input));
     this.meter = new LevelMeter(this.ctx, this.graph.analyser, this.bus);
     // Lofi kicks (music/beat.ts) feed the level meter so LevelFrame.beat is non-zero on the beat.
