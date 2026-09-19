@@ -7,6 +7,8 @@ export interface TimerEngine {
   end(fadeSec: number): Promise<void>;
   start(): Promise<void>;
   pause(fadeSec?: number): Promise<void>;
+  /** The end-of-work signal (an arpeggio). Optional: a host without audio simply has none. */
+  chime?(): void;
 }
 
 interface TimerDeps {
@@ -204,6 +206,7 @@ function advancePhase(now: number): void {
       setPhase('work', now + scaleMs(workMs(timer)));
       break;
     case 'work':
+      deps?.engine.chime?.();
       deps?.engine.end(20).catch(() => {});
       bus.emit('visual:motion', 'decelerating');
       setPhase('ending', now + scaleMs(ENDING_MS));
@@ -292,6 +295,7 @@ export function seekTimeline(nominalPosMs: number): void {
     setPhase('work', now + scaleMs(work - pos));
   } else {
     if (phase !== 'break') {
+      if (phase === 'work') deps?.engine.chime?.(); // jumping over the end of the work block is still an ending
       if (savedLayers === null) applyBreakMix();
       bus.emit('visual:motion', 'still');
     }
