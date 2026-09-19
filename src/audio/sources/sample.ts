@@ -66,14 +66,23 @@ const saveData = (): boolean => {
   return !!c?.saveData;
 };
 
-// Per-slot variation. The buffer is shared, so without this four Birds layers
-// would play one recording four times. Each mixer slot gets its own colour of
-// the same file: a small pitch/speed offset, a stereo position and a
-// brightness tilt (slot 0 is the recording as it is). A seeded jitter on top
-// keeps the offsets from being round numbers and stable for a given file + slot.
-const SLOT_RATE = [1, 0.955, 1.045, 0.985];   // playbackRate: about a quarter to a semitone apart
-const SLOT_PAN = [0, -0.4, 0.4, -0.2];
-const SLOT_TILT_DB = [0, -3, 2.5, -1.5];      // high shelf at 4 kHz
+// Per-slot variation. The buffer is shared, so without this four Stream layers
+// would play one recording four times. Each mixer slot gets a clearly different
+// voice of the same file: its own pitch/speed, its own spectral shape (dark and
+// far, bright and close, mid-forward), its own stereo position with a small
+// left/right delay (which decorrelates the channels), and its own section of
+// the file. Slot 0 is the recording as it is. A seeded jitter keeps the numbers
+// off round values and stable for a given file + slot. `spread` scales the
+// differences per file: 1 for textures (stream, rain, wind), lower for
+// birds and crickets, where a big pitch shift would sound like another animal.
+const SLOT_RATE = [1, 0.84, 1.18, 0.92];       // playbackRate, about −3 / +3 / −1.5 semitones
+const SLOT_PAN = [0, -0.45, 0.45, 0.15];
+const SLOT_DELAY_MS = [0, 9, 14, 5];           // one channel is late by this much
+const SLOT_DELAY_LEFT = [false, false, true, false];   // which channel is delayed
+const SLOT_LOW_DB = [0, 5, -6, 0];             // low shelf at 200 Hz
+const SLOT_MID_DB = [0, -2, 0, 4];             // peak at 1.2 kHz
+const SLOT_HIGH_DB = [0, -8, 5, -3];           // high shelf at 3 kHz
+const SLOT_COUNT = SLOT_RATE.length;
 
 function seeded(file: string, slot: number): () => number {
   let h = 2166136261 ^ (slot * 7919);
@@ -101,7 +110,8 @@ class SampleSource extends BaseSource {
   private firstPass = true;
   private readonly sampleLevel: number;
   private readonly rate: number;
-  private readonly voice: BiquadFilterNode;   // slot brightness tilt, the entry of the sample path
+  private readonly voice: BiquadFilterNode;   // entry of the slot's sample path: low shelf → mid → high shelf → delay → pan
+  private readonly window: number;            // which quarter of the file this slot starts its passes in
 
   constructor(
     id: SourceId,
@@ -110,6 +120,7 @@ class SampleSource extends BaseSource {
     ctx: AudioContext,
     trimDb: number,
     slot: number,
+    spread: number,
   ) {
     // The trim lives on the sample path only: the fallback synth is already at nominal level.
     super(id, FAMILY_OF[id as Exclude<SourceId, 'none'>], ctx, 0);
@@ -117,12 +128,28 @@ class SampleSource extends BaseSource {
     this.sampleGain = this.own(new GainNode(ctx, { gain: this.sampleLevel }));
     this.sampleGain.connect(this.env);
 
-    const s = slot % SLOT_RATE.length;
+    const s = slot % SLOT_COUNT;
     const rnd = seeded(file, slot);
-    this.rate = SLOT_RATE[s] * (1 + (rnd() - 0.5) * 0.014);
-    this.voice = this.own(new BiquadFilterNode(ctx, { type: 'highshelf', frequency: 4000, gain: SLOT_TILT_DB[s] + (rnd() - 0.5) }));
-    const pan = this.own(new StereoPannerNode(ctx, { pan: SLOT_PAN[s] }));
-    this.voice.connect(pan).connect(this.sampleGain);
+    this.window = s;
+    this.rate = Math.pow(SLOT_RATE[s], spread) * (1 + (rnd() - 0.5) * 0.014);
+    const shelf = (type: BiquadFilterType, frequency: number, db: number, Q = 0.7): BiquadFilterNode =>
+      this.own(new BiquadFilterNode(ctx, { type, frequency, gain: db * spread + (rnd() - 0.5) * 0.6, Q }));
+    this.voice = shelf('lowshelf', 200, SLOT_LOW_DB[s]);
+    const mid = shelf('peaking', 1200, SLOT_MID_DB[s], 1);
+    const high = shelf('highshelf', 3000, SLOT_HIGH_DB[s]);
+    this.voice.connect(mid).connect(high);
+    // Left/right decorrelation: one channel is a few milliseconds late.
+    const split = this.own(new ChannelSplitterNode(ctx, { numberOfOutputs: 2 }));
+    const merge = this.own(new ChannelMergerNode(ctx, { numberOfInputs: 2 }));
+    const late = this.own(new DelayNode(ctx, { maxDelayTime: 0.05, delayTime: (SLOT_DELAY_MS[s] * spread) / 1000 }));
+    const lateCh = SLOT_DELAY_LEFT[s] ? 0 : 1;
+    high.connect(split);
+    for (const ch of [0, 1]) {
+      if (ch === lateCh) split.connect(late, ch).connect(merge, 0, ch);
+      else split.connect(merge, ch, ch);
+    }
+    const pan = this.own(new StereoPannerNode(ctx, { pan: SLOT_PAN[s] * Math.min(1, spread + 0.3) }));
+    merge.connect(pan).connect(this.sampleGain);
 
     this.entry = acquire(file);
     if (this.entry.buf) {
@@ -185,7 +212,8 @@ class SampleSource extends BaseSource {
    */
   private bookPass(t: number): number {
     const buf = this.buffer!;
-    const offset = Math.random() * buf.duration / 2;
+    // Each slot starts in its own quarter of the file, so slots hear different parts, not one part shifted.
+    const offset = ((this.window + Math.random()) / SLOT_COUNT) * buf.duration * 0.8;
     const len = (buf.duration - offset) / this.rate;   // seconds of output, the rate stretches it
     const first = this.firstPass;
     this.firstPass = false;
@@ -219,8 +247,9 @@ class SampleSource extends BaseSource {
 /**
  * Wrap `fallback` so the layer plays `/audio/<file>` when it loads and the
  * synth otherwise. `trimDb` lifts the file (mastered at −20 LUFS) to the
- * synths' nominal level.
+ * synths' nominal level. `spread` (default 1) scales how far the mixer slots
+ * differ from each other.
  */
-export function sampleLayer(id: SourceId, file: string, fallback: SourceFactory, opts: { trimDb?: number } = {}): SourceFactory {
-  return (ctx, layerIndex = 0) => new SampleSource(id, file, fallback, ctx, opts.trimDb ?? 8, layerIndex);
+export function sampleLayer(id: SourceId, file: string, fallback: SourceFactory, opts: { trimDb?: number; spread?: number } = {}): SourceFactory {
+  return (ctx, layerIndex = 0) => new SampleSource(id, file, fallback, ctx, opts.trimDb ?? 8, layerIndex, opts.spread ?? 1);
 }
