@@ -51,7 +51,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     title: 'Sound families',
     body: [
       'Noise moves between white, pink, and brown, and masks the sound around you. Some people find it helps concentration, and some would rather work in quiet.',
-      'Water, air, and fire are restoration scenes with few events: slow ripples, soft wind, sparse embers. They sit low in the mix and rarely draw the ear toward them.',
+      'Water, air, nature, and fire are restoration scenes with few events: slow ripples, soft wind, distant birds and crickets, sparse embers. They sit low in the mix and rarely draw the ear toward them.',
       'Places recreate the low murmur of a café: a wash of voices too quiet to make out as words. At a moderate level it suits idea work well, and it never turns into speech you could actually follow.',
       'Music covers drone, lofi, plucks, synthwave, berlin, house, and chillhop, all instrumental and steady, with no vocals and no sudden shifts. It helps most with routine work and ideation, and helps least when you are reading closely.',
       'Harmony, in\u00a0the Master window, sets how far the music travels. Off keeps the four-chord loop and one-bar patterns. Gentle picks a\u00a0new progression every cycle and lets patterns run two bars, the second a\u00a0small variation of\u00a0the first. Drift adds four-bar patterns and, now and then, moves the key a\u00a0fifth up\u00a0or\u00a0a\u00a0fourth up\u00a0and back home. A\u00a0new setting is\u00a0heard when the current progression finishes, which can take a\u00a0little\u00a0while.',
