@@ -12,7 +12,9 @@ import { makeCrackle } from '../music/crackle';
 import { karplusStrongBuffer } from '../music/buffers';
 import { gridLane, pickDifferent } from '../music/grid';
 import { hat, kick, snare, cleanupOnEnd } from '../music/hits';
-import { chordDegrees, degreeToHz, PROGRESSION, type Roman } from '../music/scale';
+import { chordDegrees, degreeToHz } from '../music/scale';
+import { makeHarmonyCursor } from '../music/harmony';
+import { drumPhrase } from '../music/phrase';
 import { emitBeat } from '../music/beat';
 import { clamp, dbToGain, rand } from '../music/util';
 
@@ -130,27 +132,31 @@ export const chillhop: SourceFactory = (ctx: AudioContext): SequencedSource => {
   // Sequencer state.
   let lastPattern = -1;
   let current: Pattern = POOL[0];
-  let chordIndex = -1;
+  let phrase: Pattern[] = [];       // Harmony Gentle / Drift: the bars of the current phrase (one bar when Off)
+  const harmony = makeHarmonyCursor(CHORD_EVERY_BARS);
   let rootHz = degreeToHz(-14);
   let started = false;
 
   const beginBar = (t: number, bar: number, bpm: number): void => {
-    lastPattern = pickDifferent(POOL.length, lastPattern);
-    const p = POOL[lastPattern];
+    const h = harmony(bar, t, (60 / bpm) * 4);
+    // A new pattern each bar (Off), each two bars (Gentle) or each four bars (Drift); never the same twice in a row.
+    if (h.phraseBar === 0) {
+      lastPattern = pickDifferent(POOL.length, lastPattern);
+      phrase = drumPhrase(POOL[lastPattern], h.phraseBars);
+    }
+    const p = phrase[h.phraseBar];
     const hats = p.hat.split('').map((c) => (c === 'x' && Math.random() < HAT_DROP_CHANCE ? '.' : c)).join('');
     current = { kick: p.kick, snare: p.snare, hat: hats };
 
     let chord: string | null = null;
-    if (bar % CHORD_EVERY_BARS === 0) {
-      chordIndex = (chordIndex + 1) % PROGRESSION.length;
-      const roman: Roman = PROGRESSION[chordIndex];
-      chord = roman;
-      const degrees = chordDegrees(roman);
-      rootHz = degreeToHz(degrees[0] - 14);   // two octaves under the chord root
+    if (h.roman) {
+      chord = h.roman;
+      const degrees = chordDegrees(h.roman);
+      rootHz = degreeToHz(degrees[0] - 14, undefined, h.rootShift);   // two octaves under the chord root
       rhodesRelease(t);
       const voicing = VOICINGS[Math.floor(rand(0, VOICINGS.length))](degrees);
       // Voiced an octave below the root register; notes spread over 25 ms like a hand, not a stamp.
-      for (const d of voicing) rhodesOn(t + rand(0, 0.025), degreeToHz(d - 7), rand(0.12, 0.18));
+      for (const d of voicing) rhodesOn(t + rand(0, 0.025), degreeToHz(d - 7, undefined, h.rootShift), rand(0.12, 0.18));
       if (Math.random() < BASS_ON_CHORD_CHANCE) bass(t, rootHz);
     }
     const info: BarInfo = { bar, time: t, bpm, pattern: lastPattern, chord, signature: `${current.kick}|${current.snare}|${current.hat}` };

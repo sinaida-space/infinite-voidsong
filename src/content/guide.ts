@@ -54,6 +54,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       'Water, air, and fire are restoration scenes with few events: slow ripples, soft wind, sparse embers. They sit low in the mix and rarely draw the ear toward them.',
       'Places recreate the low murmur of a café: a wash of voices too quiet to make out as words. At a moderate level it suits idea work well, and it never turns into speech you could actually follow.',
       'Music covers drone, lofi, plucks, synthwave, berlin, house, and chillhop, all instrumental and steady, with no vocals and no sudden shifts. It helps most with routine work and ideation, and helps least when you are reading closely.',
+      'Harmony, in the Master window, sets how far the music travels. Off keeps the four-chord loop and one-bar patterns. Gentle picks a new progression every cycle and lets patterns run two\u00a0bars, the second a small variation of the\u00a0first. Drift adds four-bar patterns and, now and\u00a0then, moves the key a fifth up or a fourth up and back home, always on the first beat of a bar. It reaches lofi, chillhop, synthwave, berlin, house and plucks, and a change takes effect at the next chord change.',
       'Tone is a steady pitch you can tune by ear, closer to a pure sine at one end and to a soft noise band at the other. Some people find a single steady tone easier to hold focus against than a changing scene.',
     ],
   },

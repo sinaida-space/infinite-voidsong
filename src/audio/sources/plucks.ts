@@ -6,6 +6,7 @@ import { makeShell } from '../music/shell';
 import { makeReverb } from '../music/reverb';
 import { karplusStrongBuffer } from '../music/buffers';
 import { degreeToHz, sessionScale } from '../music/scale';
+import { keyShiftAt } from '../music/harmony';
 import { clamp, dbToGain, expRandom, rand } from '../music/util';
 
 const MEAN_GAP = 8, MIN_GAP = 4, MAX_GAP = 12;
@@ -25,11 +26,11 @@ export const plucks: SourceFactory = (ctx: AudioContext): SoundSource => {
   reverb.output.connect(out);
 
   // A pentatonic index across two octaves around the root: 0..9.
-  const pentaHz = (index: number): number => {
+  const pentaHz = (index: number, keyShift: number): number => {
     const n = sessionScale.pentatonic.length;
     const octave = Math.floor(index / n) - 1;   // octave below the root .. root octave
     const step = ((index % n) + n) % n;
-    return degreeToHz(octave * n + step, sessionScale.pentatonic);
+    return degreeToHz(octave * n + step, sessionScale.pentatonic, keyShift);
   };
 
   // One note: pre-rendered KS buffer -> velocity gain -> pan -> bus. A 10 ms
@@ -53,10 +54,11 @@ export const plucks: SourceFactory = (ctx: AudioContext): SoundSource => {
     if (shell.stopped) return null;
     const index = Math.floor(rand(0, 10));
     const vel = rand(VEL_MIN_DB, VEL_MAX_DB);
-    playNote(t, pentaHz(index), vel);
+    const keyShift = keyShiftAt(t);   // Harmony Drift moves the pentatonic root with the key; 0 otherwise
+    playNote(t, pentaHz(index, keyShift), vel);
     if (Math.random() < DYAD_CHANCE) {
       // Second note two or three pentatonic steps up (a 4th/5th-ish), slightly later and softer.
-      playNote(t + rand(0.04, 0.09), pentaHz(index + (Math.random() < 0.5 ? 2 : 3)), vel - 3);
+      playNote(t + rand(0.04, 0.09), pentaHz(index + (Math.random() < 0.5 ? 2 : 3), keyShift), vel - 3);
     }
     return t + clamp(expRandom(MEAN_GAP), MIN_GAP, MAX_GAP);
   };

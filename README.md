@@ -75,4 +75,4 @@ Apache License 2.0, see [LICENSE](./LICENSE).
 Sinaida Krivchenko is a new media artist based in Prague. She works with
 interactive projections, TouchDesigner, GLSL shaders, web applications, and generative art. Portfolio and contact: [sinaida.eu](https://sinaida.eu).
 
-#NewMedia #NewMediaArt #GenerativeArt #CreativeCoding #TouchDesigner #GLSL #WebAudio #FocusTool #FLINTA
+#NewMedia #NewMediaArt #GenerativeArt #CreativeCoding #WebAudio #FocusTool #FLINTA #flintaartist
