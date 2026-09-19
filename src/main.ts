@@ -33,6 +33,7 @@ function el(id: string): HTMLElement {
 
 const renderer = new TunnelRenderer(el('tunnel') as HTMLCanvasElement, bus);
 attachLook(renderer); // mouse on desktop, tilt on phones
+if (!renderer.available) document.documentElement.dataset.gl = 'off'; // dark ground when there is no tunnel to paint over the red one
 
 // --- UI mounts -----------------------------------------------------------------
 

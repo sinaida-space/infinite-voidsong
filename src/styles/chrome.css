@@ -123,7 +123,9 @@
   outline-offset: 2px;
 }
 
-/* Browser toolbar tint (see src/ui/tint.ts): brand red, never painted. */
+/* Browser toolbar tint. Safari 15 to 18 and Chrome for Android read the theme-color meta tag.
+   Safari 26 ignores it and samples `position: fixed` elements hugging the viewport edge
+   (and the body background). The two strips are in every page's HTML. */
 .browser-tint {
   position: fixed;
   left: 0;
