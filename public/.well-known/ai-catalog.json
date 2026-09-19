@@ -1,0 +1,43 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Infinite Voidsong",
+    "identifier": "did:web:infinite-voidsong.vercel.app"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:infinite-voidsong.vercel.app:skill:infinite-voidsong",
+      "displayName": "Infinite Voidsong usage skill",
+      "type": "text/markdown",
+      "url": "https://infinite-voidsong.vercel.app/.well-known/agent-skills/infinite-voidsong/SKILL.md",
+      "representativeQueries": [
+        "play endless background noise for deep focus",
+        "start a 25 minute pomodoro with rain sounds",
+        "which soundscape suits reading and writing",
+        "a timed work session with a real break"
+      ]
+    },
+    {
+      "identifier": "urn:air:infinite-voidsong.vercel.app:description:about",
+      "displayName": "What Infinite Voidsong is",
+      "type": "text/plain",
+      "url": "https://infinite-voidsong.vercel.app/llms.txt",
+      "representativeQueries": [
+        "what is Infinite Voidsong",
+        "who made this generative soundscape tool",
+        "web app that generates focus music in the browser"
+      ]
+    },
+    {
+      "identifier": "urn:air:infinite-voidsong.vercel.app:app:web",
+      "displayName": "Infinite Voidsong web app",
+      "type": "text/html",
+      "url": "https://infinite-voidsong.vercel.app/",
+      "representativeQueries": [
+        "free generative focus soundscape without an account",
+        "white pink brown noise and rain generator with a timer",
+        "audio-reactive tunnel meditation visual with sound"
+      ]
+    }
+  ]
+}
