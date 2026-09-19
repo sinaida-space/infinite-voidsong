@@ -19,7 +19,7 @@ const BOOT_LINES = [
   'storage ............. local only',
   'network ............. none',
 ];
-const BOOT_PROMPT_LINE = '> all sound is generated in this browser. nothing leaves your device.';
+const BOOT_PROMPT_LINE = '> sound is generated here or played from short field recordings. nothing leaves your device.';
 
 const INTRO_COPY = `Endless generated soundscapes for${NBSP}focused work.`;
 
