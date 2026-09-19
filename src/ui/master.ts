@@ -10,6 +10,18 @@ const BAND_LABEL: Record<string, string> = {
   loud: 'Too loud for focus',
 };
 
+function buildWinBar(title: string): HTMLDivElement {
+  const bar = document.createElement('div');
+  bar.className = 'win__bar';
+
+  const titleEl = document.createElement('span');
+  titleEl.className = 'win__title';
+  titleEl.textContent = title;
+  bar.appendChild(titleEl);
+
+  return bar;
+}
+
 function setRangeFill(input: HTMLInputElement): void {
   const min = Number(input.min);
   const max = Number(input.max);
@@ -53,12 +65,12 @@ function render(state: AppState): void {
 }
 
 export function mountMaster(root: HTMLElement): void {
-  root.className = 'panel master-panel';
+  root.className = 'win';
+  root.appendChild(buildWinBar('Master'));
 
-  const eyebrow = document.createElement('p');
-  eyebrow.className = 'eyebrow';
-  eyebrow.textContent = 'Master';
-  root.appendChild(eyebrow);
+  const body = document.createElement('div');
+  body.className = 'win__body master-panel';
+  root.appendChild(body);
 
   const masterLabelRow = document.createElement('div');
   masterLabelRow.className = 'control-row__label';
@@ -69,7 +81,7 @@ export function mountMaster(root: HTMLElement): void {
   masterValue.className = 'readout';
   masterLabelRow.appendChild(masterLabel);
   masterLabelRow.appendChild(masterValue);
-  root.appendChild(masterLabelRow);
+  body.appendChild(masterLabelRow);
 
   const masterInput = document.createElement('input');
   masterInput.type = 'range';
@@ -78,29 +90,30 @@ export function mountMaster(root: HTMLElement): void {
   masterInput.max = '1';
   masterInput.step = '0.01';
   masterInput.setAttribute('aria-label', 'Master volume');
-  root.appendChild(masterInput);
+  body.appendChild(masterInput);
 
   const bandLabel = document.createElement('p');
   bandLabel.className = 'band-label';
   bandLabel.setAttribute('aria-live', 'polite');
-  root.appendChild(bandLabel);
+  body.appendChild(bandLabel);
 
   const note = document.createElement('p');
   note.className = 'note';
   note.textContent = 'Estimate. Depends on your device.';
-  root.appendChild(note);
+  body.appendChild(note);
 
   const boostLabelRow = document.createElement('div');
   boostLabelRow.className = 'control-row__label';
   boostLabelRow.style.marginTop = '8px';
   const boostLabel = document.createElement('label');
   boostLabel.htmlFor = 'focus-boost';
+  boostLabel.className = 'is-cathode';
   boostLabel.textContent = 'Focus Boost (pulse on music)';
   const boostValue = document.createElement('span');
-  boostValue.className = 'readout';
+  boostValue.className = 'readout is-cathode';
   boostLabelRow.appendChild(boostLabel);
   boostLabelRow.appendChild(boostValue);
-  root.appendChild(boostLabelRow);
+  body.appendChild(boostLabelRow);
 
   const boostInput = document.createElement('input');
   boostInput.type = 'range';
@@ -109,12 +122,12 @@ export function mountMaster(root: HTMLElement): void {
   boostInput.max = '100';
   boostInput.step = '1';
   boostInput.setAttribute('aria-label', 'Focus Boost, pulse on music');
-  root.appendChild(boostInput);
+  body.appendChild(boostInput);
 
   const hint = document.createElement('p');
   hint.className = 'hint';
   hint.textContent = 'May help some people sustain attention.';
-  root.appendChild(hint);
+  body.appendChild(hint);
 
   masterInput.addEventListener('input', () => {
     setRangeFill(masterInput);

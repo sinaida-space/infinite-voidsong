@@ -1,150 +1,6 @@
-/* Onboarding, timer, break ritual, sleep select — terminal/sterile, no gradients, no icons. */
-
-.onboarding {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(5, 5, 5, 0.92);
-  color: var(--chalk);
-  font-family: var(--font-legal), sans-serif;
-}
-
-.onboarding__panel {
-  width: 100%;
-  max-width: 520px;
-  border: 1px solid var(--graphite);
-  padding: 32px 28px;
-  background: var(--void);
-}
-
-.onboarding__title {
-  margin: 0 0 20px;
-  font-family: var(--font-ui), monospace;
-  font-size: 28px;
-  line-height: 1.3;
-  color: var(--red-text);
-  letter-spacing: 0.02em;
-}
-
-.onboarding__eyebrow {
-  margin: 0 0 8px;
-  font-family: var(--font-ui), monospace;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--fog);
-}
-
-.onboarding__copy {
-  margin: 0 0 24px;
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--haze);
-}
-
-.onboarding__question {
-  margin: 0 0 16px;
-  font-size: 15px;
-  line-height: 1.4;
-  color: var(--chalk);
-}
-
-.onboarding__options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.onboarding__option {
-  padding: 10px 16px;
-  border: 1px solid var(--gunmetal);
-  background: transparent;
-  color: var(--chalk);
-  font-family: var(--font-legal), sans-serif;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.onboarding__option:hover,
-.onboarding__option:focus-visible {
-  border-color: var(--red);
-  color: var(--red-text);
-  outline: none;
-}
-
-.onboarding__option[aria-pressed='true'] {
-  border-color: var(--red);
-  color: var(--red-text);
-}
-
-.onboarding__actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  border-top: 1px solid var(--graphite);
-  padding-top: 16px;
-}
-
-.onboarding__primary {
-  padding: 10px 20px;
-  border: 1px solid var(--red);
-  background: transparent;
-  color: var(--red-text);
-  font-family: var(--font-ui), monospace;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.onboarding__primary:hover,
-.onboarding__primary:focus-visible {
-  background: var(--red);
-  color: var(--chalk);
-  outline: none;
-}
-
-.onboarding__skip {
-  padding: 8px 0;
-  border: none;
-  background: none;
-  color: var(--slate);
-  font-family: var(--font-legal), sans-serif;
-  font-size: 13px;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.onboarding__skip:hover,
-.onboarding__skip:focus-visible {
-  color: var(--fog);
-  outline: none;
-}
-
-/* Timer panel */
-
-.timer {
-  position: relative;
-  border: 1px solid var(--graphite);
-  padding: 20px;
-  color: var(--chalk);
-  font-family: var(--font-legal), sans-serif;
-}
-
-.timer__eyebrow {
-  margin: 0 0 12px;
-  font-family: var(--font-ui), monospace;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--fog);
-}
+/* Session — timer window, sleep select, break ritual. Terminal/sterile,
+   no gradients, no icons. The old pre-task-14 onboarding rules that used
+   to live here are gone; onboarding.css (task 14) owns that surface now. */
 
 .timer__presets {
   display: flex;
@@ -158,7 +14,7 @@
   border: 1px solid var(--gunmetal);
   background: transparent;
   color: var(--chalk);
-  font-family: var(--font-ui), monospace;
+  font-family: var(--font-ui), 'Courier New', monospace;
   font-size: 13px;
   cursor: pointer;
 }
@@ -177,16 +33,17 @@
 
 .timer__readout {
   margin: 0 0 4px;
-  font-family: var(--font-ui), monospace;
+  font-family: var(--font-ui), 'Courier New', monospace;
   font-size: 44px;
   line-height: 1;
   letter-spacing: 0.02em;
-  color: var(--chalk);
+  color: var(--cathode);
+  text-shadow: 0 0 6px rgba(167, 190, 190, 0.4), 0 0 14px rgba(167, 190, 190, 0.18);
 }
 
 .timer__phase {
   margin: 0 0 18px;
-  font-family: var(--font-ui), monospace;
+  font-family: var(--font-ui), 'Courier New', monospace;
   font-size: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -212,7 +69,7 @@
   border: 1px solid var(--gunmetal);
   background: var(--void);
   color: var(--chalk);
-  font-family: var(--font-legal), sans-serif;
+  font-family: var(--font-ui), 'Courier New', monospace;
   font-size: 13px;
 }
 
@@ -222,6 +79,31 @@
   gap: 8px;
   font-size: 13px;
   color: var(--fog);
+}
+
+.timer__hint-line {
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--slate);
+}
+
+.timer__why {
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--red-text);
+  font-family: inherit;
+  font-size: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.timer__why:hover,
+.timer__why:focus-visible {
+  color: var(--chalk);
+  outline: none;
 }
 
 /* Break / resume ritual */
@@ -238,40 +120,25 @@
   padding: 24px;
 }
 
+.ritual .win {
+  width: min(28rem, calc(100vw - 2rem));
+  text-align: left;
+}
+
 .ritual__message {
   margin: 0;
-  font-family: var(--font-legal), sans-serif;
   font-weight: 300;
   font-size: clamp(28px, 5vw, 48px);
   color: var(--chalk);
   letter-spacing: 0.01em;
+  text-align: center;
 }
 
 .ritual[hidden] {
   display: none;
 }
 
-/* Toast (resume cue) */
-
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 32px;
-  transform: translateX(-50%);
-  z-index: 110;
-  padding: 10px 18px;
-  border: 1px solid var(--graphite);
-  background: var(--void);
-  color: var(--chalk);
-  font-family: var(--font-legal), sans-serif;
-  font-size: 14px;
-}
-
 @media (max-width: 480px) {
-  .onboarding__panel {
-    padding: 24px 18px;
-  }
-
   .timer__readout {
     font-size: 36px;
   }

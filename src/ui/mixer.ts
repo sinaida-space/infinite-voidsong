@@ -74,6 +74,18 @@ function patchLayerParam(index: number, key: string, value: number): void {
   });
 }
 
+function buildWinBar(title: string): HTMLDivElement {
+  const bar = document.createElement('div');
+  bar.className = 'win__bar';
+
+  const titleEl = document.createElement('span');
+  titleEl.className = 'win__title';
+  titleEl.textContent = title;
+  bar.appendChild(titleEl);
+
+  return bar;
+}
+
 interface RangeRefs {
   input: HTMLInputElement;
   value: HTMLSpanElement;
@@ -151,24 +163,20 @@ function buildOptions(select: HTMLSelectElement): void {
 
 function buildCard(index: number): CardRefs {
   const card = document.createElement('div');
-  card.className = 'layer-card';
+  card.className = 'win layer-card';
   card.dataset.layerIndex = String(index);
+  card.appendChild(buildWinBar(`Layer ${index + 1}`));
 
-  const head = document.createElement('div');
-  head.className = 'layer-card__head';
-  const eyebrow = document.createElement('p');
-  eyebrow.className = 'eyebrow';
-  eyebrow.style.margin = '0';
-  eyebrow.textContent = `Layer ${index + 1}`;
-  head.appendChild(eyebrow);
-  card.appendChild(head);
+  const body = document.createElement('div');
+  body.className = 'win__body layer-card__body';
+  card.appendChild(body);
 
   const select = document.createElement('select');
   select.className = 'source-select';
   select.id = `layer-${index}-source`;
   select.setAttribute('aria-label', `Layer ${index + 1} source`);
   buildOptions(select);
-  card.appendChild(select);
+  body.appendChild(select);
 
   const row = document.createElement('div');
   row.className = 'layer-card__row';
@@ -191,11 +199,11 @@ function buildCard(index: number): CardRefs {
 
   row.appendChild(volRow);
   row.appendChild(muteBtn);
-  card.appendChild(row);
+  body.appendChild(row);
 
   const paramBox = document.createElement('div');
   paramBox.className = 'param-controls';
-  card.appendChild(paramBox);
+  body.appendChild(paramBox);
 
   const focusSelect = () => setSelectedLayerIndex(index);
   card.addEventListener('focusin', focusSelect);
@@ -358,7 +366,9 @@ function updateParamBox(refs: CardRefs, index: number, layer: LayerState): void 
 function applySelectionClasses(): void {
   if (!cards) return;
   cards.forEach((refs, i) => {
-    refs.card.classList.toggle('is-selected', i === selectedIndex);
+    const selected = i === selectedIndex;
+    refs.card.classList.toggle('is-selected', selected);
+    refs.card.classList.toggle('is-active', selected);
   });
 }
 
@@ -387,15 +397,20 @@ function render(state: AppState): void {
 }
 
 export function mountMixer(root: HTMLElement): void {
-  root.className = 'mixer';
-  root.setAttribute('role', 'group');
-  root.setAttribute('aria-label', 'Layers');
+  root.className = 'win';
+  root.appendChild(buildWinBar('Mixer'));
+
+  const body = document.createElement('div');
+  body.className = 'win__body mixer';
+  body.setAttribute('role', 'group');
+  body.setAttribute('aria-label', 'Layers');
+  root.appendChild(body);
 
   cards = [];
   for (let i = 0; i < 4; i++) {
     const refs = buildCard(i);
     cards.push(refs);
-    root.appendChild(refs.card);
+    body.appendChild(refs.card);
   }
 
   applySelectionClasses();
