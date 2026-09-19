@@ -193,6 +193,31 @@
   color: var(--fog);
 }
 
+/* Stars sit behind the text, in coarse dithered cells. */
+.term__stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  image-rendering: pixelated;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Neon logo: a hot core and two wider halos. */
+.term .term__title.glitch {
+  color: #ff3b3b;
+  text-shadow:
+    0 0 6px rgba(255, 60, 60, 0.7),
+    0 0 18px rgba(205, 0, 0, 0.6),
+    0 0 42px rgba(205, 0, 0, 0.35);
+}
+
+.term__link {
+  color: var(--red-text);
+}
+
 /* Quick tuning: red ground, chalk text, so attention lands here. */
 .term__tuning {
   padding: 16px 18px 18px;

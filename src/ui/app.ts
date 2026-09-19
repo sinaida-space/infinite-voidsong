@@ -28,7 +28,7 @@ export function mountApp(root: HTMLElement): void {
 
   const sideCol = document.createElement('section');
   sideCol.className = 'col col-side';
-  sideCol.setAttribute('aria-label', 'Transport and presets');
+  sideCol.setAttribute('aria-label', 'Player and presets');
   layout.appendChild(sideCol);
 
   const mixerMount = document.createElement('div');

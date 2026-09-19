@@ -2,6 +2,7 @@ import '../styles/onboarding.css';
 import type { TaskPreset } from '../state/types';
 import { store } from '../state/store';
 import { applyPreset } from '../state/presets';
+import { createStars } from './stars';
 
 type NoiseAnswer = 'quiet' | 'home' | 'office' | 'varies';
 type OutputAnswer = 'headphones' | 'speakers';
@@ -21,10 +22,7 @@ const WELCOME_COPY =
   `Infinite Voidsong generates endless soundscapes right in${NBSP}your browser, built to${NBSP}sit behind ` +
   `focused work. No${NBSP}accounts and no${NBSP}tracking: everything stays on${NBSP}your device.`;
 
-const BASIS_COPY =
-  `Built on published research about background sound and attention. Quiet, steady sound tends to${NBSP}suit ` +
-  `reading and writing, instrumental music routine work and idea generation, and speech is always left out. ` +
-  `Effects differ between people, so treat every mix as${NBSP}a starting point.`;
+const BASIS_COPY = `Published studies on background sound and attention, and what they do and do${NBSP}not show: `;
 
 const SESSIONS_COPY =
   `Choose a timed session in${NBSP}the Session window: 25/5, 50/10 or 90/15 minutes of${NBSP}work and${NBSP}break. ` +
@@ -131,6 +129,9 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-label', 'Welcome to Infinite Voidsong');
 
+  const stars = createStars(store.get().reducedMotion);
+  overlay.appendChild(stars.canvas);
+
   const body = document.createElement('div');
   body.className = 'term__body';
   overlay.appendChild(body);
@@ -172,6 +173,7 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
 
   function teardown(): void {
     setKeyHandler(null);
+    stars.stop();
     overlay.remove();
   }
 
@@ -311,13 +313,22 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
     }
   }
 
-  function labelled(label: string, text: string): HTMLParagraphElement {
+  function labelled(label: string, text: string, link?: { href: string; label: string }): HTMLParagraphElement {
     const p = document.createElement('p');
     p.className = 'term__copy';
     const tag = document.createElement('span');
     tag.className = 'term__guide-label';
     tag.textContent = label;
     p.append(tag, ` · ${text}`);
+    if (link) {
+      const a = document.createElement('a');
+      a.className = 'term__link';
+      a.href = link.href;
+      a.textContent = link.label;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      p.appendChild(a);
+    }
     return p;
   }
 
@@ -337,7 +348,7 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
     copy.textContent = WELCOME_COPY;
     body.insertBefore(copy, tuning);
 
-    body.insertBefore(labelled('BASED ON', BASIS_COPY), tuning);
+    body.insertBefore(labelled('BASED ON', BASIS_COPY, { href: '/research.html', label: 'Research and sources' }), tuning);
     body.insertBefore(labelled('SESSIONS', SESSIONS_COPY), tuning);
 
     const guide = document.createElement('p');

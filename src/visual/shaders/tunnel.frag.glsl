@@ -25,6 +25,7 @@ uniform float uWidthAdd;     // extra line width from the beat, music family onl
 uniform float uDpr;          // device pixel ratio actually rendered at
 uniform float uDither;       // 0 smooth .. 1 fully dithered (default 0.8)
 uniform float uDitherScale;  // dither cell size in device pixels (default 2.0)
+uniform vec2  uLook;         // where the viewer is looking, -1..1 each axis (mouse or phone tilt), already smoothed
 
 out vec4 outColor;
 
@@ -43,6 +44,13 @@ const float SWAY_HZ_X = 0.017;
 const float SWAY_HZ_Y = 0.011;
 const float ROLL_DEG = 4.0;       // ±4° roll
 const float ROLL_HZ = 0.01;
+
+// Steering: mouse or phone tilt turns the view. The whole image shifts a little,
+// far rings shift more than near ones (parallax, like peering down a corridor),
+// and the view rolls slightly into the turn.
+const float LOOK_SHIFT = 0.06;    // whole-image shift at full deflection, in viewport heights
+const float LOOK_PATH = 0.10;     // extra shift of the far end of the tunnel; kept below the ring spacing so rings never cross
+const float LOOK_ROLL_DEG = 3.0;
 
 // Organic walls: noise displaces the ring coordinate (radial undulation) and the angle.
 const float WARP_RING = 0.035;    // ring displacement in ring units: a slight variation only
@@ -165,9 +173,10 @@ void main() {
   // Camera sway: the vanishing point drifts on a slow Lissajous path.
   vec2 sway = SWAY_AMT * vec2(sin(uTime * TAU * SWAY_HZ_X), sin(uTime * TAU * SWAY_HZ_Y + 1.3));
   uv -= sway;
+  uv -= LOOK_SHIFT * uLook;
 
   // Camera roll: a few degrees either way, once every 100 s.
-  float roll = radians(ROLL_DEG) * sin(uTime * TAU * ROLL_HZ);
+  float roll = radians(ROLL_DEG) * sin(uTime * TAU * ROLL_HZ) + radians(LOOK_ROLL_DEG) * uLook.x;
   float cr = cos(roll), sr = sin(roll);
   uv = mat2(cr, -sr, sr, cr) * uv;
 
@@ -187,6 +196,7 @@ void main() {
     vec2 centre = PATH_AMP * smoothstep(1.0, 4.0, zc)
                 * vec2(sin(zc * PATH_K1 + uTime * TAU * PATH_W1),
                        cos(zc * PATH_K2 + uTime * TAU * PATH_W2));
+    centre += LOOK_PATH * uLook * smoothstep(1.0, 4.0, zc);
     pathUv = uv - centre;
   }
   uv = pathUv;
