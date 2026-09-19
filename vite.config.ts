@@ -71,6 +71,7 @@ export default defineConfig({
         guide: 'guide.html',
         terms: 'terms.html',
         research: 'research.html',
+        chimes: 'chimes.html', // temporary: listening page for the end-of-session sounds
         notFound: '404.html',
       },
     },
