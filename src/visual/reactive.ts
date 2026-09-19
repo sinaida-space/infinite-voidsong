@@ -58,6 +58,12 @@ export class Reactive {
   private curS = normalizeSources({});
   private xfadeS = XFADE_SEC;
 
+  // Preset colour scheme: while one is set, its colours replace the family/source blend.
+  private palTarget: [RGB, RGB] | null = null;
+  private palNear: RGB = [153, 153, 153];
+  private palFar: RGB = [153, 153, 153];
+  private palAmount = 0;        // 0 = family colours, 1 = the preset's colours
+
   private huePhase = 0;         // seconds of hue drift; advances only while the picture moves
   private lobeGain = 0.6;
   private lobePhase = 0;
@@ -115,8 +121,21 @@ export class Reactive {
   get crossfading(): boolean { return this.xfadeT < XFADE_SEC || this.xfadeS < XFADE_SEC; }
 
   /** True while anything on screen still needs new frames. */
+  /** Sets (or clears, with null) the preset colour scheme; the change fades over a few seconds. */
+  setPalette(p: [RGB, RGB] | null): void {
+    if (p && this.palAmount <= 0.001) { this.palNear = [...p[0]]; this.palFar = [...p[1]]; }
+    this.palTarget = p;
+  }
+
+  private get paletteSettling(): boolean {
+    if (this.palTarget) {
+      return this.palAmount < 1 || this.palTarget.some((c, i) => c.some((v, j) => Math.abs(v - (i === 0 ? this.palNear : this.palFar)[j]) > 0.5));
+    }
+    return this.palAmount > 0;
+  }
+
   get animating(): boolean {
-    if (this.crossfading) return true;
+    if (this.crossfading || this.paletteSettling) return true;
     if (this.reducedMotion) return false;
     return this.motion === 'running' || this.motion === 'decelerating';
   }
@@ -160,7 +179,25 @@ export class Reactive {
     // wander that freezes with the picture (still frame / reduced motion).
     if (!this.reducedMotion && this.motion !== 'still') this.huePhase += dt;
     const drift = HUE_DRIFT_DEG * Math.sin(this.huePhase * 2 * Math.PI * HUE_DRIFT_HZ);
-    const [near, far] = blendHue(this.curW, blendMusicHue(this.curS));
+    let [near, far] = blendHue(this.curW, blendMusicHue(this.curS));
+
+    // Preset scheme: fade in or out, and glide between two schemes.
+    const step = Math.min(1, dt / XFADE_SEC);
+    if (this.palTarget) {
+      this.palAmount = Math.min(1, this.palAmount + step);
+      for (let j = 0; j < 3; j++) {
+        this.palNear[j] += (this.palTarget[0][j] - this.palNear[j]) * Math.min(1, step * 2.5);
+        this.palFar[j] += (this.palTarget[1][j] - this.palFar[j]) * Math.min(1, step * 2.5);
+      }
+    } else {
+      this.palAmount = Math.max(0, this.palAmount - step);
+    }
+    if (this.palAmount > 0) {
+      const m = this.palAmount * this.palAmount * (3 - 2 * this.palAmount);
+      const mix = (a: RGB, b: RGB): RGB => [a[0] + (b[0] - a[0]) * m, a[1] + (b[1] - a[1]) * m, a[2] + (b[2] - a[2]) * m];
+      near = mix(near, this.palNear);
+      far = mix(far, this.palFar);
+    }
 
     // Per-ring lobes: amplitude follows the mid band, the drift phase runs faster on
     // the low band; both under the 15 % cap / frozen with the picture so nothing strobes.

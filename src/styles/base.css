@@ -203,12 +203,10 @@ body::after {
    `document.documentElement.dataset.ui = 'hidden'`. Hidden elements use
    `visibility` rather than `display` so scroll/focus state survives the
    toggle; the tunnel canvas and a compact timer readout stay visible. */
-:root[data-ui='hidden'] #banner,
 :root[data-ui='hidden'] #footer,
 :root[data-ui='hidden'] .app-title,
 :root[data-ui='hidden'] .app-layout,
-:root[data-ui='hidden'] .guide,
-:root[data-ui='hidden'] .toast {
+:root[data-ui='hidden'] .guide {
   visibility: hidden;
 }
 
@@ -229,31 +227,44 @@ body::after {
   display: none;
 }
 
-.ui-hint {
+
+
+
+/* Hide-UI mode always shows a way back. */
+.show-ui {
+  display: none;
   position: fixed;
-  bottom: 76px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 60;
-  padding: 6px 12px;
-  border: 1px solid var(--graphite);
+  top: 16px;
+  right: 16px;
+  z-index: 70;
+  padding: 10px 16px;
+  border: 1px solid var(--gunmetal);
   background: rgba(5, 5, 5, 0.85);
-  color: var(--cathode);
-  font-size: 11px;
-  letter-spacing: 0.06em;
+  color: var(--chalk);
+  font-family: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 1, 1);
+  cursor: pointer;
 }
 
-.ui-hint.is-visible {
-  opacity: 1;
-  transition: opacity 0.25s cubic-bezier(0, 0, 0.2, 1);
+.show-ui:hover,
+.show-ui:focus-visible {
+  border-color: var(--red);
+  color: var(--red-text);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ui-hint {
-    transition: none;
-  }
+:root[data-ui='hidden'] .show-ui {
+  display: block;
+}
+
+/* Playback cue on the page itself: the tunnel dims when the sound is not playing. */
+#tunnel {
+  transition: filter 0.6s ease;
+}
+
+:root[data-playback='paused'] #tunnel,
+:root[data-playback='idle'] #tunnel {
+  /* A brightness filter, not opacity: the page behind the canvas is red (see body). */
+  filter: brightness(0.4);
 }

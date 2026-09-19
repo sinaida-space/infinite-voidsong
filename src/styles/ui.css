@@ -286,6 +286,37 @@
   gap: 20px;
 }
 
+.player-status {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fog);
+}
+
+.player-status::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--fog);
+}
+
+.player-status[data-state='playing']::before,
+.player-status[data-state='starting']::before {
+  background: #ff3b3b;
+  border-color: #ff3b3b;
+  box-shadow: 0 0 8px rgba(255, 60, 60, 0.8);
+}
+
+.player-status[data-state='playing'],
+.player-status[data-state='starting'] {
+  color: var(--chalk);
+}
+
 .play-btn {
   border: 1px solid var(--gunmetal); /* the same as Share, Guide and Hide UI */
   width: 100%;
@@ -299,10 +330,16 @@
   justify-content: center;
 }
 
+/* Playing: the same button, lit red like the active presets. */
+.play-btn[aria-pressed='true'] {
+  border-color: var(--red);
+  color: var(--red-text);
+  box-shadow: 0 0 10px rgba(205, 0, 0, 0.35);
+}
 
 .transport__actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 

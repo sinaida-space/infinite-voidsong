@@ -34,28 +34,15 @@ function forgetLegacyHiddenChoice(): void {
   }
 }
 
-let hintTimeout: ReturnType<typeof setTimeout> | null = null;
-
-function flashHideHint(): void {
-  const hint = document.getElementById('ui-hint');
-  if (!hint) return;
-  hint.classList.remove('is-visible');
-  void hint.offsetWidth; // restart the fade-in animation
-  hint.classList.add('is-visible');
-  if (hintTimeout) clearTimeout(hintTimeout);
-  hintTimeout = setTimeout(() => hint.classList.remove('is-visible'), 3000);
-}
-
 function announceUiState(hidden: boolean): void {
   const live = document.getElementById('ui-live');
-  if (live) live.textContent = hidden ? 'Interface hidden. Press H to show.' : 'Interface shown.';
+  if (live) live.textContent = hidden ? 'Interface hidden. Use the Show interface button, or press H, to bring it back.' : 'Interface shown.';
 }
 
-function applyUiHidden(hidden: boolean, announceHint: boolean): void {
+function applyUiHidden(hidden: boolean): void {
   if (hidden) document.documentElement.dataset.ui = 'hidden';
   else delete document.documentElement.dataset.ui;
   announceUiState(hidden);
-  if (hidden && announceHint) flashHideHint();
 }
 
 export function isUiHidden(): boolean {
@@ -63,11 +50,11 @@ export function isUiHidden(): boolean {
 }
 
 export function toggleHideUi(): void {
-  applyUiHidden(!isUiHidden(), true);
+  applyUiHidden(!isUiHidden());
 }
 
 export function showUi(): void {
-  if (isUiHidden()) applyUiHidden(false, false);
+  if (isUiHidden()) applyUiHidden(false);
 }
 
 export const PRESET_ORDER: TaskPreset[] = [
@@ -99,6 +86,7 @@ export function togglePlayback(): void {
 
 interface Refs {
   playBtn: HTMLButtonElement;
+  status: HTMLElement;
   presetBtns: Map<TaskPreset, HTMLButtonElement>;
 }
 
@@ -112,6 +100,11 @@ function render(state: AppState): void {
   lastKey = key;
 
   const isPlaying = state.playback === 'starting' || state.playback === 'playing';
+  // Visual cues for the mode, on the page as well as on the button: the tunnel dims when
+  // the sound is not playing (see base.css), and the Player window says so in words.
+  document.documentElement.dataset.playback = state.playback;
+  refs.status.textContent = state.playback === 'starting' ? 'Starting' : state.playback === 'playing' ? 'Playing' : state.playback === 'paused' ? 'Paused' : 'Ready';
+  refs.status.dataset.state = state.playback;
   refs.playBtn.textContent = isPlaying ? 'Pause' : 'Play';
   refs.playBtn.setAttribute('aria-pressed', String(isPlaying));
   refs.playBtn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
@@ -125,7 +118,7 @@ export function mountTransport(root: HTMLElement): void {
   root.className = 'transport-stack';
 
   forgetLegacyHiddenChoice();
-  applyUiHidden(false, false);
+  applyUiHidden(false);
 
   // --- Player window --------------------------------------------------
   const transportWin = document.createElement('div');
@@ -136,6 +129,13 @@ export function mountTransport(root: HTMLElement): void {
   transportBody.className = 'win__body transport';
   transportWin.appendChild(transportBody);
   root.appendChild(transportWin);
+
+  const status = document.createElement('p');
+  status.className = 'player-status';
+  status.setAttribute('role', 'status');
+  status.setAttribute('aria-live', 'polite');
+  status.textContent = 'Ready';
+  transportBody.appendChild(status);
 
   const playBtn = document.createElement('button');
   playBtn.type = 'button';
@@ -148,21 +148,6 @@ export function mountTransport(root: HTMLElement): void {
 
   const actionsRow = document.createElement('div');
   actionsRow.className = 'transport__actions';
-
-  const shareBtn = document.createElement('button');
-  shareBtn.type = 'button';
-  shareBtn.className = 'share-btn';
-  shareBtn.textContent = 'Share';
-  shareBtn.setAttribute('aria-label', 'Copy link to this session');
-  shareBtn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(location.href);
-      bus.emit('ui:toast', { text: 'Link copied.', ms: 2500 });
-    } catch {
-      bus.emit('ui:toast', { text: 'Could not copy link.', ms: 2500 });
-    }
-  });
-  actionsRow.appendChild(shareBtn);
 
   const guideBtn = document.createElement('button');
   guideBtn.type = 'button';
@@ -181,6 +166,17 @@ export function mountTransport(root: HTMLElement): void {
   actionsRow.appendChild(hideBtn);
 
   transportBody.appendChild(actionsRow);
+
+  // A permanent way back for hide-UI mode: a phone has no H key, and a hint that fades
+  // after a few seconds leaves nothing to press.
+  const showUi = document.createElement('button');
+  showUi.type = 'button';
+  showUi.className = 'show-ui';
+  const touch = typeof matchMedia === 'function' && matchMedia('(hover: none)').matches;
+  showUi.textContent = touch ? 'Show interface' : 'Show interface (H)';
+  showUi.setAttribute('aria-label', 'Show the interface');
+  showUi.addEventListener('click', () => applyUiHidden(false));
+  document.body.appendChild(showUi);
 
   // --- Presets window ------------------------------------------------------
   const presetsWin = document.createElement('div');
@@ -210,7 +206,7 @@ export function mountTransport(root: HTMLElement): void {
   }
   presetsBody.appendChild(presetRow);
 
-  refs = { playBtn, presetBtns };
+  refs = { playBtn, status, presetBtns };
 
   store.subscribe(render);
   render(store.get());
