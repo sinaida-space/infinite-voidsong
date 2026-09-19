@@ -284,9 +284,11 @@ export function mountTimer(root?: HTMLElement): void {
     const inRitual = session.phase === 'break' || session.phase === 'resume-cue';
     panel.hidden = inRitual;
     breakScreen.el.hidden = !inRitual;
+    // During a break the page shows only the title, the break window and the footer (see session.css).
+    document.documentElement.toggleAttribute('data-break', inRitual);
 
     // The timeline follows you onto the break screen so you can jump back to work from there.
-    if (inRitual && timeline.parentElement !== breakScreen.body) breakScreen.body.appendChild(timeline);
+    if (inRitual && timeline.parentElement !== breakScreen.body) breakScreen.body.insertBefore(timeline, breakScreen.actions);
     if (!inRitual && timeline.parentElement !== body) body.insertBefore(timeline, row);
 
     const remaining = session.phaseEndsAt ? session.phaseEndsAt - Date.now() : null;
