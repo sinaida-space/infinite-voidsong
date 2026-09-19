@@ -56,7 +56,6 @@ export const PRESET_TABLE: Record<TaskPreset, PresetDef> = {
     master: 0.65,
     boost: 0,
     timer: '90/15',
-    warmup: true,
   },
   routine: {
     layers: [
