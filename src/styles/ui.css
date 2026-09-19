@@ -220,8 +220,8 @@
 }
 
 .mute-btn[aria-pressed='true'] {
-  border-color: var(--chalk);
-  background: var(--chalk);
+  border-color: var(--slate);
+  background: var(--slate);
   color: var(--void);
 }
 
