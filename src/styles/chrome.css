@@ -1,0 +1,124 @@
+/* Chrome shared by every page, the app included: notice banner, footer, focus ring.
+   Kept free of element selectors (body, h1, p, a) so it cannot restyle the app. */
+
+/* Banner */
+.notice-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding: 0.85rem 1.25rem;
+  background: var(--graphite);
+  border-top: 1px solid var(--red);
+  font-family: var(--font-ui), sans-serif;
+  font-size: 0.85rem;
+}
+
+.notice-banner[hidden] {
+  display: none;
+}
+
+.notice-banner__text {
+  color: var(--haze);
+  margin: 0;
+  flex: 1 1 20rem;
+}
+
+.notice-banner__text a {
+  color: var(--red-text);
+  margin-left: 0.4rem;
+}
+
+.notice-banner__actions {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.notice-banner__dismiss {
+  font-family: var(--font-ui), sans-serif;
+  font-size: 0.85rem;
+  color: var(--void);
+  background: var(--red);
+  border: 1px solid var(--red);
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+}
+
+.notice-banner__dismiss:hover,
+.notice-banner__dismiss:focus-visible {
+  background: var(--red-text);
+  border-color: var(--red-text);
+}
+
+/* Footer: one scale. Headings 1rem chalk, everything else 0.85rem fog. */
+.site-footer {
+  font-family: var(--font-ui), sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--fog);
+  border-top: 1px solid var(--graphite);
+}
+
+.site-footer__grid {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 2.5rem;
+}
+
+.site-footer__col p {
+  margin: 0 0 0.6rem;
+}
+
+.site-footer__col p.site-footer__heading {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--chalk);
+}
+
+.site-footer__version {
+  color: var(--slate);
+}
+
+.site-footer__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.site-footer a {
+  color: var(--fog);
+  text-decoration: none;
+  border-bottom: 1px solid var(--gunmetal);
+}
+
+.site-footer a:hover,
+.site-footer a:focus-visible {
+  color: var(--chalk);
+  border-bottom-color: var(--red);
+}
+
+@media (max-width: 42rem) {
+  .site-footer__grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--red-text);
+  outline-offset: 2px;
+}
