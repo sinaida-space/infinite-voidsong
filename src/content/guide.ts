@@ -26,7 +26,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       '25 minutes on, 5 minutes off is the Pomodoro rhythm. The block is short enough to start without much resistance, which suits admin work and days when motivation runs low.',
       '50 minutes on, 10 minutes off suits work with a real warm-up, such as writing or coding, where the first few minutes go to finding the thread. The block stays long enough to keep hold of that thread once it appears.',
       '90 minutes on, 15 minutes off follows one ultradian cycle: attention runs in waves of roughly that length. Reach for it once you already know how to start deep work and want an uninterrupted stretch.',
-      'A break plays a quiet stream rather than silence, because attention recovers faster with a real pause than with more effort. Each session ends with a slow fade rather than a hard stop, so nothing startles you out of the work.',
+      'The break is silent: no sound and a still picture, because attention recovers faster with a real pause than with more effort. A short arpeggio going down tells you the work block is over, and one going up tells you the break is over. Each session ends with a slow fade rather than a hard stop, so nothing startles you out of the work.',
     ],
   },
   {
@@ -40,7 +40,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         ['Reading & writing', 'Pink or brown noise, soft rain, or silence if the room is already quiet.', 'Any lyrics or intelligible speech compete for the same verbal system that reading and writing use.', 'Lyrics in any language, intelligible speech, or music that is both fast and loud.'],
         ['Creative flow', 'A ten-minute warm-up of upbeat instrumental music, then café ambience or nature at a lively level.', 'Ideation runs on moderate arousal, and dead silence leaves it flat.', 'Dead silence, volume past Café.'],
         ['Routine', 'Lofi or upbeat instrumental music, or fan-style noise.', 'Repetitive admin work benefits from arousal that a purely relaxing texture would flatten.', 'Textures relaxing enough to drift toward drowsiness.'],
-        ['Break & restore', 'A quiet nature stream: water with sparse birdsong.', 'Recovery calls for restoration: quiet, low-event sound that lets attention settle.', 'Speech of any kind, including podcasts and news.'],
+        ['Break & restore', 'A quiet nature stream: water with sparse birdsong. A preset you choose for a pause, separate from the silent break inside a timed session.', 'Recovery calls for restoration: quiet, low-event sound that lets attention settle.', 'Speech of any kind, including podcasts and news.'],
         ['Sleep', 'Pink noise, rain, or underwater, kept at Whisper level with the sleep timer running.', 'A steady low layer masks disruption without adding enough arousal to keep you from sleep.', 'Any bright or alert-sounding scene.'],
       ],
     },
