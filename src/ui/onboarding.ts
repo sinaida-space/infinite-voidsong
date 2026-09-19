@@ -21,9 +21,7 @@ const BOOT_LINES = [
 ];
 const BOOT_PROMPT_LINE = '> all sound is generated in this browser. nothing leaves your device.';
 
-const INTRO_COPY =
-  `Endless generated soundscapes for${NBSP}focused work. Four quick choices, then begin. ` +
-  `You can change everything afterwards.`;
+const INTRO_COPY = `Endless generated soundscapes for${NBSP}focused work.`;
 
 interface ModeDef {
   id: TaskPreset;

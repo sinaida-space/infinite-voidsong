@@ -68,14 +68,16 @@ html.pac-open {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 14px 14px 2px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(205, 0, 0, 0.22);
 }
 
 .pac .win__title {
-  font-size: 1rem;
-  letter-spacing: 0.1em;
+  font-size: 1.35rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--red-text);
+  color: #ff3b3b;
+  text-shadow: 0 0 6px rgba(255, 60, 60, 0.6), 0 0 16px rgba(205, 0, 0, 0.45);
 }
 
 .pac .win__close {
@@ -97,5 +99,5 @@ html.pac-open {
 }
 
 .pac .win__body {
-  padding: 8px 14px 16px;
+  padding: 18px 20px 20px;
 }

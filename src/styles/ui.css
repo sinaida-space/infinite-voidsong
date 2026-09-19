@@ -12,13 +12,22 @@
 }
 
 .app-title {
-  font-size: clamp(1.9rem, 1.4rem + 2vw, 2.8rem);
-  color: var(--red);
-  border-bottom: 1px solid var(--red);
-  padding-bottom: 12px;
+  margin: 0;
+  font-size: clamp(2rem, 1.3rem + 3vw, 3.5rem);
+  line-height: 1.1;
   letter-spacing: 0.01em;
   font-weight: normal;
-  text-shadow: 0 0 6px rgba(205, 0, 0, 0.45), 0 0 14px rgba(205, 0, 0, 0.2);
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--red);
+}
+
+/* The same neon as the welcome logo: a hot core and two wider halos. */
+.app-shell .app-title.glitch {
+  color: #ff3b3b;
+  text-shadow:
+    0 0 6px rgba(255, 60, 60, 0.7),
+    0 0 18px rgba(205, 0, 0, 0.6),
+    0 0 42px rgba(205, 0, 0, 0.35);
 }
 
 .app-layout {
@@ -60,28 +69,28 @@
   border-top-color: rgba(205, 0, 0, 1);
 }
 
+/* One inner grid for every window: header and content start at the same edge (20px). */
 .win__bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 14px 14px 2px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(205, 0, 0, 0.22);
 }
 
+/* Headers are the top of the hierarchy: clearly larger than any body text, lit like the logo. */
 .win__title {
   font-family: var(--font-ui), 'Courier New', monospace;
-  font-size: 1rem;
-  letter-spacing: 0.1em;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--red-text);
+  color: #ff3b3b;
+  text-shadow: 0 0 6px rgba(255, 60, 60, 0.6), 0 0 16px rgba(205, 0, 0, 0.45);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* Layer cards sit inside the Mixer window, so their titles step down one size. */
-.layer-card .win__title {
-  font-size: 0.85rem;
 }
 
 .win__close {
@@ -104,7 +113,7 @@
 
 .win__body {
   position: relative;
-  padding: 8px 14px 14px;
+  padding: 20px 20px 24px;
   flex: 1;
   min-width: 0;
 }
@@ -120,7 +129,7 @@
 .mixer {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 14px;
+  gap: 28px 32px;
 }
 
 @media (min-width: 640px) {
@@ -129,8 +138,28 @@
   }
 }
 
+/* A layer is a sub-section of the Mixer, not a second window: no shadow, no
+   backdrop, and its content sits on the Mixer's own inner edge. */
 .layer-card {
   gap: 0;
+  background: none;
+  box-shadow: none;
+  border-top: 1px solid rgba(205, 0, 0, 0.3);
+}
+
+.layer-card .win__bar {
+  padding: 14px 0 10px;
+  border-bottom: none;
+}
+
+.layer-card .win__title {
+  font-size: 1.05rem;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 5px rgba(255, 60, 60, 0.4);
+}
+
+.layer-card .win__body {
+  padding: 0;
 }
 
 .layer-card__body {
@@ -210,7 +239,7 @@
 /* Master + Focus Boost */
 
 .band-label {
-  font-size: 1.1rem;
+  font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--chalk);
@@ -255,9 +284,9 @@
 
 .play-btn {
   border: 1px solid var(--chalk);
-  width: 88px;
-  height: 88px;
-  align-self: center;
+  width: 100%;
+  height: 60px;
+  align-self: stretch;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -272,9 +301,9 @@
 }
 
 .transport__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 
 .preset-row {
