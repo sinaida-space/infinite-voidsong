@@ -70,12 +70,15 @@ async function networkFirst(request) {
   }
 }
 
-async function cacheFirst(request, cacheName = CACHE_NAME) {
+async function cacheFirst(request, cacheName = CACHE_NAME, event) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  if (response.ok) cache.put(request, response.clone());
+  if (response.ok) {
+    const put = cache.put(request, response.clone());
+    if (event) event.waitUntil(put); else put.catch(() => {});
+  }
   return response;
 }
 
@@ -90,12 +93,12 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (isAudioRequest(request)) {
-    event.respondWith(cacheFirst(request, AUDIO_CACHE));
+    event.respondWith(cacheFirst(request, AUDIO_CACHE, event));
     return;
   }
 
   if (isFontRequest(request)) {
-    event.respondWith(cacheFirst(request));
+    event.respondWith(cacheFirst(request, CACHE_NAME, event));
     return;
   }
 });

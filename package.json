@@ -11,7 +11,8 @@
     "smoke": "node scripts/smoke.mjs",
     "typo": "python3 ~/.claude/skills/typography/scripts/typocheck.py privacy.html index.html shortcuts.html 404.html guide.html terms.html research.html README.md",
     "dither": "node scripts/dither-404.mjs",
-    "test:state": "tsx src/state/__selftest.ts"
+    "test:state": "tsx src/state/__selftest.ts",
+    "test:harmony": "node scripts/harmony-check.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

@@ -6,8 +6,8 @@ const NBSP = '\u00a0';
 const HARMONY_LABEL: Record<HarmonyMode, string> = { off: 'Off', gentle: 'Gentle', drift: 'Drift' };
 const HARMONY_HINT: Record<HarmonyMode, string> = {
   off: `The music keeps its four-chord loop and one-bar patterns.`,
-  gentle: `A new chord progression each cycle, patterns of two${NBSP}bars.`,
-  drift: `As Gentle, with four-bar patterns and a key that${NBSP}wanders and returns.`,
+  gentle: `A${NBSP}new chord progression each cycle, patterns of${NBSP}two${NBSP}bars.`,
+  drift: `As${NBSP}Gentle, with four-bar patterns and a${NBSP}key that${NBSP}wanders and returns.`,
 };
 
 const BAND_LABEL: Record<string, string> = {
