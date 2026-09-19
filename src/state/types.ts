@@ -49,13 +49,15 @@ export interface MasterState { volume: number /* 0..1 */; }
 export const bandOf = (v: number): Band => v < 0.2 ? 'whisper' : v < 0.4 ? 'library' : v < 0.6 ? 'workspace' : v < 0.8 ? 'cafe' : 'loud';
 
 export type TaskPreset = 'deep-focus' | 'reading-writing' | 'creative-flow' | 'routine' | 'break-restore' | 'sleep';
-export type TimerPreset = '25/5' | '50/10' | '90/15';
+export type TimerPreset = '25/5' | '50/10' | '90/15' | 'custom';
 export type Phase = 'free' | 'warmup' | 'work' | 'ending' | 'break' | 'resume-cue' | 'sleep';
 
 export interface SessionState {
   timer: TimerPreset | null;        // null = untimed
   phase: Phase;                     // 'free' when untimed
   phaseEndsAt: number | null;       // epoch ms
+  customWork: number;               // minutes of work in the 'custom' session, 1..240
+  customBreak: number;              // minutes of break in the 'custom' session, 1..60
   warmup: boolean;                  // creative-flow 10 min upbeat warm-up
   sleepEndsAt: number | null;       // epoch ms, sleep timer
 }
@@ -82,5 +84,5 @@ export interface AppState {
 //            {source:'drone',volume:0.3,muted:false,params:{}},
 //            {source:'none',volume:0.5,muted:false,params:{}} ],
 //   master:{volume:0.5}, focusBoost:{depth:0.3,rateHz:16}, preset:'deep-focus',
-//   session:{timer:'50/10',phase:'work',phaseEndsAt:1789999999000,warmup:false,sleepEndsAt:null},
+//   session:{timer:'50/10',customWork:40,customBreak:8,phase:'work',phaseEndsAt:1789999999000,warmup:false,sleepEndsAt:null},
 //   onboarded:true, noticeDismissed:true, reducedMotion:false }

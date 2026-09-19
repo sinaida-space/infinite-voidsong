@@ -1,13 +1,15 @@
 import '../styles/onboarding.css';
-import type { TaskPreset } from '../state/types';
+import type { TaskPreset, TimerPreset } from '../state/types';
 import { store } from '../state/store';
 import { applyPreset } from '../state/presets';
+import { startTimer, setCustomDurations, CUSTOM_WORK_RANGE, CUSTOM_BREAK_RANGE } from '../state/session';
 import { createStars } from './stars';
 
 type NoiseAnswer = 'quiet' | 'home' | 'office' | 'varies';
 type OutputAnswer = 'headphones' | 'speakers';
+type SessionChoice = TimerPreset | 'untimed';
 
-const NBSP = ' ';
+const NBSP = '\u00a0';
 
 const BOOT_LINES = [
   'VOIDSONG/1.1 · boot',
@@ -18,55 +20,105 @@ const BOOT_LINES = [
 ];
 const BOOT_PROMPT_LINE = '> all sound is generated in this browser. nothing leaves your device.';
 
-const WELCOME_COPY =
-  `Infinite Voidsong generates endless soundscapes right in${NBSP}your browser, built to${NBSP}sit behind ` +
-  `focused work. No${NBSP}accounts and no${NBSP}tracking: everything stays on${NBSP}your device.`;
+const INTRO_COPY =
+  `Endless generated soundscapes for${NBSP}focused work. Pick a mode and${NBSP}a${NBSP}session, ` +
+  `then begin. You can change everything afterwards.`;
 
-const BASIS_COPY = `Published studies on background sound and attention, and what they do and do${NBSP}not show: `;
-
-const SESSIONS_COPY =
-  `Choose a timed session in${NBSP}the Session window: 25/5, 50/10 or 90/15 minutes of${NBSP}work and${NBSP}break. ` +
-  `When the${NBSP}work ends the sound fades and a real break begins. The guide explains which to${NBSP}use.`;
-
-const HOW_TO_MOVE = `Space play/pause · 1–6 presets · ↑↓ volume · H hide the${NBSP}interface · ? guide`;
-
-interface Step<T extends string> {
-  prompt: string;
-  options: Array<{ value: T; label: string }>;
+interface ModeDef {
+  id: TaskPreset;
+  name: string;
+  blurb: string;
+  session: SessionChoice; // the session that usually goes with it
 }
 
-const TASK_STEP: Step<TaskPreset> = {
-  prompt: 'what are you working on?',
-  options: [
-    { value: 'deep-focus', label: 'Deep focus' },
-    { value: 'reading-writing', label: 'Reading & writing' },
-    { value: 'creative-flow', label: 'Creative flow' },
-    { value: 'routine', label: 'Routine' },
-    { value: 'break-restore', label: 'Break & restore' },
-  ],
-};
+const MODES: ModeDef[] = [
+  {
+    id: 'deep-focus',
+    name: 'Deep focus',
+    blurb: `Steady noise, soft rain and${NBSP}a${NBSP}low drone. For analysis, coding and${NBSP}anything that needs your full attention.`,
+    session: '50/10',
+  },
+  {
+    id: 'reading-writing',
+    name: 'Reading and writing',
+    blurb: `Quiet noise and running water, no${NBSP}music. Keeps words clear while you read or${NBSP}write.`,
+    session: '25/5',
+  },
+  {
+    id: 'creative-flow',
+    name: 'Creative flow',
+    blurb: `Café murmur and easy lo-fi beats, a${NBSP}little louder. For ideas, with an${NBSP}optional ten minute warm-up.`,
+    session: '90/15',
+  },
+  {
+    id: 'routine',
+    name: 'Routine',
+    blurb: `Upbeat house and${NBSP}a${NBSP}fan hum. For admin, email and${NBSP}other repetitive tasks.`,
+    session: '50/10',
+  },
+  {
+    id: 'break-restore',
+    name: 'Break and restore',
+    blurb: `Stream, wind and soft plucks at${NBSP}a${NBSP}low level. A${NBSP}real pause instead of more work.`,
+    session: 'untimed',
+  },
+  {
+    id: 'sleep',
+    name: 'Sleep',
+    blurb: `Rain and${NBSP}deep, muffled tones that end in${NBSP}a${NBSP}slow fade after 45 minutes.`,
+    session: 'untimed',
+  },
+];
 
-const NOISE_STEP: Step<NoiseAnswer> = {
-  prompt: `how noisy is${NBSP}your space?`,
-  options: [
-    { value: 'quiet', label: 'Quiet' },
-    { value: 'home', label: 'Home' },
-    { value: 'office', label: 'Open office' },
-    { value: 'varies', label: 'It varies' },
-  ],
-};
+interface SessionDef {
+  id: SessionChoice;
+  name: string;
+  blurb: string;
+}
 
-const OUTPUT_STEP: Step<OutputAnswer> = {
-  prompt: `headphones or${NBSP}speakers?`,
-  options: [
-    { value: 'headphones', label: 'Headphones' },
-    { value: 'speakers', label: 'Speakers' },
-  ],
-};
+const SESSIONS: SessionDef[] = [
+  {
+    id: '25/5',
+    name: '25 / 5',
+    blurb: `Short sprints, known as the Pomodoro method. Easy to${NBSP}start, so it suits admin or${NBSP}days when motivation is${NBSP}low.`,
+  },
+  {
+    id: '50/10',
+    name: '50 / 10',
+    blurb: `A longer block for work that needs time to${NBSP}warm up, such as writing or coding, still ending in${NBSP}a${NBSP}proper break.`,
+  },
+  {
+    id: '90/15',
+    name: '90 / 15',
+    blurb: `One full attention cycle. For deep work you already know how to${NBSP}begin.`,
+  },
+  {
+    id: 'custom',
+    name: 'Custom',
+    blurb: `Your own lengths: type the minutes of${NBSP}work and${NBSP}the minutes of${NBSP}rest.`,
+  },
+  {
+    id: 'untimed',
+    name: 'No timer',
+    blurb: `Sound only, for${NBSP}as long as you like.`,
+  },
+];
 
-const DEFAULT_TASK: TaskPreset = 'deep-focus';
-const DEFAULT_NOISE: NoiseAnswer = 'home';
-const DEFAULT_OUTPUT: OutputAnswer = 'headphones';
+const SESSIONS_NOTE =
+  `No study fixes the perfect length. These are common working conventions, so try more than${NBSP}one. ` +
+  `What research does support is taking real breaks.`;
+
+const NOISE_OPTIONS: Array<{ value: NoiseAnswer; label: string }> = [
+  { value: 'quiet', label: 'Quiet' },
+  { value: 'home', label: 'Home' },
+  { value: 'office', label: 'Open office' },
+  { value: 'varies', label: 'It varies' },
+];
+
+const OUTPUT_OPTIONS: Array<{ value: OutputAnswer; label: string }> = [
+  { value: 'headphones', label: 'Headphones' },
+  { value: 'speakers', label: 'Speakers' },
+];
 
 function findRootOrCreate(id: string): HTMLElement {
   const existing = document.getElementById(id);
@@ -110,9 +162,10 @@ export function showWelcome(): void {
 }
 
 /**
- * Mounts the welcome and quiz overlay. It opens on every visit: browsers only
- * allow sound after a tap, so the welcome doubles as the start screen. A
- * returning visitor (mix already saved) can Skip to keep that mix untouched.
+ * Mounts the welcome. It opens on every visit: browsers only allow sound after
+ * a tap, so the welcome doubles as the start screen. First a short boot log,
+ * then one dialog where you choose a mode and a session. A returning visitor
+ * (mix already saved) can Skip to keep that mix untouched.
  */
 export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions = {}): void {
   if (document.querySelector('.term')) return;
@@ -121,10 +174,12 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
   const container = root ?? findRootOrCreate('onboarding');
   container.innerHTML = '';
 
-  const answers: { task: TaskPreset | null; noise: NoiseAnswer | null; output: OutputAnswer | null } = {
-    task: null,
-    noise: null,
-    output: null,
+  const choice = {
+    mode: 'deep-focus' as TaskPreset,
+    session: '50/10' as SessionChoice,
+    sessionTouched: false, // once you pick a session yourself, changing the mode stops changing it
+    noise: 'home' as NoiseAnswer,
+    output: 'headphones' as OutputAnswer,
   };
 
   const overlay = document.createElement('div');
@@ -144,31 +199,11 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
   bootLog.className = 'term__boot';
   body.appendChild(bootLog);
 
-  // Quick tuning sits on a red ground so the eye lands on it.
-  const tuning = document.createElement('section');
-  tuning.className = 'term__tuning';
-  tuning.hidden = true;
-  tuning.setAttribute('aria-label', 'Quick tuning');
-  body.appendChild(tuning);
-
-  const tuningLabel = document.createElement('p');
-  tuningLabel.className = 'term__section';
-  tuningLabel.textContent = 'Quick tuning';
-  tuning.appendChild(tuningLabel);
-
-  const log = document.createElement('div');
-  log.className = 'term__log';
-  tuning.appendChild(log);
-
-  const activeStep = document.createElement('div');
-  tuning.appendChild(activeStep);
-
   const actions = document.createElement('div');
   actions.className = 'term__actions';
   body.appendChild(actions);
 
   let keyHandler: ((e: KeyboardEvent) => void) | null = null;
-
   function setKeyHandler(fn: ((e: KeyboardEvent) => void) | null): void {
     if (keyHandler) window.removeEventListener('keydown', keyHandler);
     keyHandler = fn;
@@ -181,9 +216,32 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
     overlay.remove();
   }
 
-  function finish(task: TaskPreset, noise: NoiseAnswer, output: OutputAnswer): void {
-    applyPreset(task, { noise, output });
-    store.set((s) => ({ ...s, onboarded: true, playback: s.playback === 'playing' ? s.playback : 'starting' }));
+  // --- custom lengths (shown when the Custom session is chosen) --------------------
+  let workInput: HTMLInputElement;
+  let breakInput: HTMLInputElement;
+
+  function clampMinutes(value: string, range: { min: number; max: number }, fallback: number): number {
+    const n = Math.round(Number(value));
+    return Number.isFinite(n) && n > 0 ? Math.min(range.max, Math.max(range.min, n)) : fallback;
+  }
+
+  // --- finish ----------------------------------------------------------------------
+  function begin(): void {
+    applyPreset(choice.mode, { noise: choice.noise, output: choice.output });
+    if (choice.session === 'custom') {
+      setCustomDurations(
+        clampMinutes(workInput.value, CUSTOM_WORK_RANGE, 40),
+        clampMinutes(breakInput.value, CUSTOM_BREAK_RANGE, 8),
+      );
+    }
+    // Untimed: drop the timer but keep the preset's own sleep fade, if it has one.
+    store.set((s) => ({
+      ...s,
+      onboarded: true,
+      playback: s.playback === 'playing' ? s.playback : 'starting',
+      session: choice.session === 'untimed' ? { ...s.session, timer: null } : s.session,
+    }));
+    if (choice.session !== 'untimed') startTimer(choice.session);
     teardown();
   }
 
@@ -192,7 +250,8 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
       teardown();
       return;
     }
-    finish(DEFAULT_TASK, DEFAULT_NOISE, DEFAULT_OUTPUT);
+    // A first visit that skips gets the default: deep focus, 50/10, headphones.
+    begin();
   }
 
   function renderActions(primary: { label: string; onClick: () => void } | null): HTMLButtonElement | null {
@@ -223,121 +282,23 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
     return primaryBtn;
   }
 
-  function enterAction(): { label: string; onClick: () => void } {
-    return {
-      label: 'Enter',
-      onClick: () => {
-        if (answers.task && answers.noise && answers.output) {
-          finish(answers.task, answers.noise, answers.output);
-        }
-      },
-    };
+  // --- the dialog --------------------------------------------------------------------
+  function optionCard(name: string, blurb: string): HTMLButtonElement {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'choice';
+    btn.setAttribute('aria-pressed', 'false');
+    const n = document.createElement('span');
+    n.className = 'choice__name';
+    n.textContent = name;
+    const b = document.createElement('span');
+    b.className = 'choice__blurb';
+    b.textContent = blurb;
+    btn.append(n, b);
+    return btn;
   }
 
-  function echo(label: string): void {
-    const line = document.createElement('p');
-    line.className = 'term__echo';
-    line.textContent = `> ${label.toLowerCase()}`;
-    log.appendChild(line);
-  }
-
-  function renderQuestion<T extends string>(step: Step<T>, onPick: (v: T) => void): void {
-    activeStep.innerHTML = '';
-
-    const prompt = document.createElement('p');
-    prompt.className = 'term__prompt';
-    prompt.textContent = `> ${step.prompt}`;
-    activeStep.appendChild(prompt);
-
-    const optionsWrap = document.createElement('div');
-    optionsWrap.className = 'term__options';
-    optionsWrap.setAttribute('role', 'group');
-    optionsWrap.setAttribute('aria-label', step.prompt);
-
-    const pick = (index: number): void => {
-      const opt = step.options[index];
-      if (!opt) return;
-      onPick(opt.value);
-      echo(opt.label);
-      renderStep();
-    };
-
-    step.options.forEach((opt, index) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'term__option';
-      btn.innerHTML = `<span class="term__option-key">[${index + 1}]</span> ${opt.label}`;
-      btn.addEventListener('click', () => pick(index));
-      optionsWrap.appendChild(btn);
-    });
-    activeStep.appendChild(optionsWrap);
-
-    setKeyHandler((e) => {
-      const n = Number(e.key);
-      if (Number.isInteger(n) && n >= 1 && n <= step.options.length) {
-        pick(n - 1);
-      }
-    });
-
-    renderActions(null);
-  }
-
-  function renderReady(): void {
-    activeStep.innerHTML = '';
-
-    const ready = document.createElement('p');
-    ready.className = 'term__prompt';
-    ready.textContent = '> ready when you are';
-    activeStep.appendChild(ready);
-
-    setKeyHandler((e) => {
-      if (e.key === 'Enter' && answers.task && answers.noise && answers.output) {
-        finish(answers.task, answers.noise, answers.output);
-      }
-    });
-
-    renderActions(enterAction());
-  }
-
-  function renderStep(): void {
-    if (!answers.task) {
-      renderQuestion(TASK_STEP, (v) => {
-        answers.task = v;
-      });
-    } else if (!answers.noise) {
-      renderQuestion(NOISE_STEP, (v) => {
-        answers.noise = v;
-      });
-    } else if (!answers.output) {
-      renderQuestion(OUTPUT_STEP, (v) => {
-        answers.output = v;
-      });
-    } else {
-      renderReady();
-    }
-  }
-
-  function labelled(label: string, text: string, link?: { href: string; label: string }): HTMLParagraphElement {
-    const p = document.createElement('p');
-    p.className = 'term__copy';
-    const tag = document.createElement('span');
-    tag.className = 'term__guide-label';
-    tag.textContent = label;
-    p.append(tag, ` · ${text}`);
-    if (link) {
-      const a = document.createElement('a');
-      a.className = 'term__link';
-      a.href = link.href;
-      a.textContent = link.label;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      p.appendChild(a);
-    }
-    return p;
-  }
-
-  /** Second screen: what it is, what it rests on, sessions, then the red quick-tuning panel. */
-  function showBriefing(): void {
+  function showDialog(): void {
     setKeyHandler(null);
     bootLog.remove();
 
@@ -345,24 +306,142 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
     title.className = 'term__title glitch';
     title.dataset.text = 'INFINITE VOIDSONG';
     title.textContent = 'INFINITE VOIDSONG';
-    body.insertBefore(title, tuning);
+    body.insertBefore(title, actions);
 
-    const copy = document.createElement('p');
-    copy.className = 'term__copy';
-    copy.textContent = WELCOME_COPY;
-    body.insertBefore(copy, tuning);
+    const intro = document.createElement('p');
+    intro.className = 'term__copy';
+    intro.textContent = INTRO_COPY;
+    body.insertBefore(intro, actions);
 
-    body.insertBefore(labelled('BASED ON', BASIS_COPY, { href: '/research.html', label: 'Research and sources' }), tuning);
-    body.insertBefore(labelled('SESSIONS', SESSIONS_COPY), tuning);
+    const dialog = document.createElement('section');
+    dialog.className = 'term__dialog';
+    dialog.setAttribute('aria-label', 'Choose a mode and a session');
+    body.insertBefore(dialog, actions);
 
-    const guide = document.createElement('p');
-    guide.className = 'term__guide';
-    guide.innerHTML = `<span class="term__guide-label">HOW TO MOVE</span> · ${HOW_TO_MOVE}`;
-    body.insertBefore(guide, tuning);
+    // Mode ---------------------------------------------------------------------------
+    const modeLabel = document.createElement('p');
+    modeLabel.className = 'term__label';
+    modeLabel.textContent = '1 · Mode';
+    const modeGrid = document.createElement('div');
+    modeGrid.className = 'choice-grid';
+    modeGrid.setAttribute('role', 'group');
+    modeGrid.setAttribute('aria-label', 'Mode');
+    const modeCards = new Map<TaskPreset, HTMLButtonElement>();
+    for (const m of MODES) {
+      const card = optionCard(m.name, m.blurb);
+      card.addEventListener('click', () => {
+        choice.mode = m.id;
+        if (!choice.sessionTouched) choice.session = m.session;
+        syncCards();
+      });
+      modeCards.set(m.id, card);
+      modeGrid.appendChild(card);
+    }
 
-    tuning.hidden = false;
-    renderStep();
-    tuning.scrollIntoView({ block: 'nearest' });
+    // Session ------------------------------------------------------------------------
+    const sessionLabel = document.createElement('p');
+    sessionLabel.className = 'term__label';
+    sessionLabel.textContent = '2 · Session';
+    const sessionGrid = document.createElement('div');
+    sessionGrid.className = 'choice-grid';
+    sessionGrid.setAttribute('role', 'group');
+    sessionGrid.setAttribute('aria-label', 'Session length');
+    const sessionCards = new Map<SessionChoice, HTMLButtonElement>();
+    for (const sdef of SESSIONS) {
+      const card = optionCard(sdef.name, sdef.blurb);
+      card.addEventListener('click', () => {
+        choice.session = sdef.id;
+        choice.sessionTouched = true;
+        syncCards();
+        if (sdef.id === 'custom') workInput.focus();
+      });
+      sessionCards.set(sdef.id, card);
+      sessionGrid.appendChild(card);
+    }
+
+    // Custom fields -----------------------------------------------------------------
+    const custom = document.createElement('div');
+    custom.className = 'timer__custom';
+    custom.hidden = true;
+    const field = (label: string, range: { min: number; max: number }, value: number) => {
+      const wrap = document.createElement('label');
+      wrap.className = 'timer__field';
+      const text = document.createElement('span');
+      text.textContent = label;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.className = 'timer__num';
+      input.min = String(range.min);
+      input.max = String(range.max);
+      input.step = '1';
+      input.inputMode = 'numeric';
+      input.value = String(value);
+      const unit = document.createElement('span');
+      unit.textContent = 'min';
+      wrap.append(text, input, unit);
+      return { wrap, input };
+    };
+    const sess = store.get().session;
+    const w = field('Work', CUSTOM_WORK_RANGE, sess.customWork);
+    const b = field('Break', CUSTOM_BREAK_RANGE, sess.customBreak);
+    workInput = w.input;
+    breakInput = b.input;
+    custom.append(w.wrap, b.wrap);
+
+    const note = document.createElement('p');
+    note.className = 'term__note';
+    note.append(`${SESSIONS_NOTE} `);
+    const research = document.createElement('a');
+    research.className = 'term__link';
+    research.href = '/research.html';
+    research.target = '_blank';
+    research.rel = 'noopener noreferrer';
+    research.textContent = 'Research and sources';
+    note.append(research);
+
+    // Fine-tune (optional) -----------------------------------------------------------
+    const more = document.createElement('details');
+    more.className = 'term__more';
+    const summary = document.createElement('summary');
+    summary.textContent = 'Fine-tune (optional)';
+    more.appendChild(summary);
+    const moreRow = document.createElement('div');
+    moreRow.className = 'term__more-row';
+    const select = <T extends string>(label: string, options: Array<{ value: T; label: string }>, current: T, onPick: (v: T) => void) => {
+      const wrap = document.createElement('label');
+      wrap.className = 'term__field';
+      const text = document.createElement('span');
+      text.textContent = label;
+      const sel = document.createElement('select');
+      sel.className = 'term__select';
+      for (const o of options) {
+        const opt = document.createElement('option');
+        opt.value = o.value;
+        opt.textContent = o.label;
+        if (o.value === current) opt.selected = true;
+        sel.appendChild(opt);
+      }
+      sel.addEventListener('change', () => onPick(sel.value as T));
+      wrap.append(text, sel);
+      return wrap;
+    };
+    moreRow.append(
+      select('Your space', NOISE_OPTIONS, choice.noise, (v) => { choice.noise = v; }),
+      select('Listening on', OUTPUT_OPTIONS, choice.output, (v) => { choice.output = v; }),
+    );
+    more.appendChild(moreRow);
+
+    dialog.append(modeLabel, modeGrid, sessionLabel, sessionGrid, custom, note, more);
+
+    function syncCards(): void {
+      for (const [id, card] of modeCards) card.setAttribute('aria-pressed', String(id === choice.mode));
+      for (const [id, card] of sessionCards) card.setAttribute('aria-pressed', String(id === choice.session));
+      custom.hidden = choice.session !== 'custom';
+    }
+    syncCards();
+
+    const beginBtn = renderActions({ label: 'Begin', onClick: begin });
+    beginBtn?.scrollIntoView({ block: 'nearest' });
   }
 
   async function runIntro(): Promise<void> {
@@ -373,11 +452,11 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
     }
     await typeLine(bootLog, BOOT_PROMPT_LINE, 'term__boot-line--prompt');
 
-    // First screen is only the boot log; Continue (or Enter) opens the briefing.
-    const continueBtn = renderActions({ label: 'Continue', onClick: showBriefing });
+    // First screen is only the boot log; Continue (or Enter) opens the dialog.
+    const continueBtn = renderActions({ label: 'Continue', onClick: showDialog });
     continueBtn?.focus();
     setKeyHandler((e) => {
-      if (e.key === 'Enter') showBriefing();
+      if (e.key === 'Enter') showDialog();
     });
   }
 

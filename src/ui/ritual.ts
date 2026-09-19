@@ -14,7 +14,7 @@ function buildWinBar(title: string): HTMLDivElement {
 }
 
 /** Break screen: a centred "Break. Back in mm:ss" window, announced politely. */
-export function createBreakScreen(): { el: HTMLElement; update: (remainingMs: number) => void } {
+export function createBreakScreen(): { el: HTMLElement; body: HTMLElement; update: (remainingMs: number) => void } {
   const el = document.createElement('div');
   el.className = 'ritual';
   el.hidden = true;
@@ -39,7 +39,7 @@ export function createBreakScreen(): { el: HTMLElement; update: (remainingMs: nu
   }
 
   update(0);
-  return { el, update };
+  return { el, body, update };
 }
 
 let toastTimeout: ReturnType<typeof setTimeout> | null = null;

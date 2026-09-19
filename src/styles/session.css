@@ -143,3 +143,171 @@
     font-size: 36px;
   }
 }
+
+/* Custom session lengths */
+
+.timer__custom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin: -6px 0 16px;
+  padding: 12px;
+  border: 1px solid var(--graphite);
+}
+
+.timer__custom[hidden] {
+  display: none;
+}
+
+.timer__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--chalk);
+}
+
+.timer__num {
+  width: 64px;
+  padding: 6px 8px;
+  border: 1px solid var(--gunmetal);
+  background: var(--void);
+  color: var(--chalk);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.timer__go {
+  padding: 7px 14px;
+  border: 1px solid var(--red);
+  background: transparent;
+  color: var(--red-text);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.timer__go:hover,
+.timer__go:focus-visible {
+  background: var(--red);
+  color: var(--chalk);
+}
+
+.timer__custom-note {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--slate);
+}
+
+/* Timeline: one cycle, work then break. The range input sits on top of the
+   bar, invisible except for its playhead, so a click or a drag anywhere jumps
+   there and the keyboard works for free. */
+
+.timeline {
+  margin: 0 0 16px;
+}
+
+.timeline[hidden] {
+  display: none;
+}
+
+.timeline__bar {
+  position: relative;
+  display: flex;
+  gap: 3px;
+  height: 22px;
+}
+
+.timeline__seg {
+  position: relative;
+  min-width: 10px;
+  height: 100%;
+  border: 1px solid var(--gunmetal);
+  overflow: hidden;
+}
+
+.timeline__seg--work {
+  border-color: rgba(205, 0, 0, 0.6);
+}
+
+.timeline__seg--break {
+  border-color: rgba(167, 190, 190, 0.5);
+}
+
+.timeline__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+}
+
+.timeline__seg--work .timeline__fill {
+  background: rgba(205, 0, 0, 0.55);
+}
+
+.timeline__seg--break .timeline__fill {
+  background: rgba(167, 190, 190, 0.4);
+}
+
+.timeline input[type='range'].timeline__range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.timeline input[type='range'].timeline__range:disabled {
+  cursor: default;
+}
+
+.timeline input[type='range'].timeline__range::-webkit-slider-runnable-track {
+  height: 100%;
+  background: none;
+}
+
+.timeline input[type='range'].timeline__range::-webkit-slider-thumb {
+  width: 3px;
+  height: 30px;
+  margin-top: -4px;
+  background: var(--chalk);
+  box-shadow: 0 0 6px rgba(246, 246, 246, 0.6);
+}
+
+.timeline input[type='range'].timeline__range::-moz-range-track {
+  height: 100%;
+  background: none;
+}
+
+.timeline input[type='range'].timeline__range::-moz-range-progress {
+  background: none;
+}
+
+.timeline input[type='range'].timeline__range::-moz-range-thumb {
+  width: 3px;
+  height: 30px;
+  background: var(--chalk);
+}
+
+.timeline__labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--slate);
+}
+
+.timeline__pos {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--fog);
+}
+
+.ritual .timeline {
+  margin: 24px 0 0;
+}
