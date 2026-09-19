@@ -12,8 +12,9 @@ export function mountApp(root: HTMLElement): void {
   root.className = 'app-shell';
 
   const heading = document.createElement('h1');
-  heading.className = 'app-title';
+  heading.className = 'app-title glitch';
   heading.textContent = 'Infinite Voidsong';
+  heading.dataset.text = 'Infinite Voidsong';
   root.appendChild(heading);
 
   const layout = document.createElement('div');
