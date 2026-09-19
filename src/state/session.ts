@@ -7,8 +7,8 @@ export interface TimerEngine {
   end(fadeSec: number): Promise<void>;
   start(): Promise<void>;
   pause(fadeSec?: number): Promise<void>;
-  /** The end-of-work signal (an arpeggio). Optional: a host without audio simply has none. */
-  chime?(): void;
+  /** The session signals: an arpeggio down when work ends, up when the break ends. Optional: a host without audio has none. */
+  chime?(direction: 'down' | 'up'): void;
 }
 
 interface TimerDeps {
@@ -84,36 +84,6 @@ export function formatMMSS(ms: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-// The user's own mix, kept aside in module memory (never persisted) while the break's
-// temporary mix is in the store, so resume can restore exactly what they had.
-let savedLayers: AppState['layers'] | null = null;
-let savedMasterVolume: number | null = null;
-
-function applyBreakMix(): void {
-  const s = store.get();
-  savedLayers = s.layers;
-  savedMasterVolume = s.master.volume;
-  store.set((st) => ({
-    ...st,
-    layers: [
-      { source: 'stream', volume: 0.4, muted: false, params: {} },
-      { source: 'wind', volume: 0.2, muted: false, params: {} },
-      { source: 'none', volume: 0.5, muted: false, params: {} },
-      { source: 'none', volume: 0.5, muted: false, params: {} },
-    ],
-    master: { volume: 0.2 },
-  }));
-}
-
-function restoreMix(): void {
-  if (!savedLayers || savedMasterVolume === null) return;
-  const layers = savedLayers;
-  const masterVolume = savedMasterVolume;
-  savedLayers = null;
-  savedMasterVolume = null;
-  store.set((st) => ({ ...st, layers, master: { volume: masterVolume } }));
-}
-
 function setPhase(to: Phase, phaseEndsAt: number | null): void {
   const from = store.get().session.phase;
   store.set((st) => ({ ...st, session: { ...st.session, phase: to, phaseEndsAt } }));
@@ -122,7 +92,6 @@ function setPhase(to: Phase, phaseEndsAt: number | null): void {
 
 /** Begins a timed session for the given timer preset: warm-up (if set) then work. */
 export function startTimer(preset: TimerPreset): void {
-  restoreMix(); // a restart from the break must not leave the break mix behind
   cycle = 1;
   const warmup = store.get().session.warmup;
   store.set((st) => ({ ...st, session: { ...st.session, timer: preset } }));
@@ -133,9 +102,10 @@ export function startTimer(preset: TimerPreset): void {
   }
 }
 
-/** Cancels any running timer, restores a break mix if one is active, returns to untimed/free. */
+/** Cancels any running timer and returns to untimed/free. */
 export function stopTimer(): void {
-  restoreMix();
+  // A break is silent: cancelling during one brings the sound back.
+  if (['ending', 'break', 'resume-cue'].includes(store.get().session.phase)) deps?.engine.start().catch(() => {});
   store.set((st) => ({
     ...st,
     session: { ...st.session, timer: null, phase: 'free', phaseEndsAt: null, sleepEndsAt: null },
@@ -206,23 +176,23 @@ function advancePhase(now: number): void {
       setPhase('work', now + scaleMs(workMs(timer)));
       break;
     case 'work':
-      deps?.engine.chime?.();
+      deps?.engine.chime?.('down'); // the work is over
       deps?.engine.end(20).catch(() => {});
       bus.emit('visual:motion', 'decelerating');
       setPhase('ending', now + scaleMs(ENDING_MS));
       break;
     case 'ending':
-      applyBreakMix();
+      // The break is silent, and so is the picture: nothing plays, nothing moves.
       bus.emit('visual:motion', 'still');
       setPhase('break', now + scaleMs(breakMs(timer)));
       break;
     case 'break':
+      deps?.engine.chime?.('up'); // the break is over
       bus.emit('ui:toast', { text: 'Ready when you are', ms: 4000 });
       bus.emit('visual:motion', 'running');
       setPhase('resume-cue', now + scaleMs(RESUME_CUE_MS));
       break;
     case 'resume-cue':
-      restoreMix();
       deps?.engine.start().catch(() => {});
       cycle += 1;
       setPhase('work', now + scaleMs(workMs(timer)));
@@ -274,8 +244,8 @@ export function getTimeline(now = Date.now()): TimelineInfo | null {
 
 /**
  * Jumps the running session to a point on the timeline. Into the work segment
- * it restores the user's mix and brings the sound back; into the break segment
- * it swaps to the quiet break mix, exactly as the normal transitions do.
+ * it brings the sound back; into the break segment
+ * it goes silent, exactly as the normal transitions do.
  */
 export function seekTimeline(nominalPosMs: number): void {
   const info = getTimeline();
@@ -288,15 +258,15 @@ export function seekTimeline(nominalPosMs: number): void {
 
   if (pos < work) {
     if (phase !== 'work') {
-      restoreMix();
+      if (phase === 'break') deps?.engine.chime?.('up'); // leaving the break by hand is still its end
       deps?.engine.start().catch(() => {});
       bus.emit('visual:motion', 'running');
     }
     setPhase('work', now + scaleMs(work - pos));
   } else {
     if (phase !== 'break') {
-      if (phase === 'work') deps?.engine.chime?.(); // jumping over the end of the work block is still an ending
-      if (savedLayers === null) applyBreakMix();
+      if (phase === 'work') deps?.engine.chime?.('down'); // jumping over the end of the work block is still an ending
+      deps?.engine.end(3).catch(() => {}); // the break is silent
       bus.emit('visual:motion', 'still');
     }
     setPhase('break', now + scaleMs(brk - (pos - work)));

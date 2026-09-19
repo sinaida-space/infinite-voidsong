@@ -19,7 +19,7 @@ Behind the interface is a WebGL2 tunnel that reacts to the sound. Colour follows
 
 ## Why it exists
 
-Background sound helps some people with some tasks and hurts others, so the tool asks what you are doing before it plays anything: deep focus, reading and writing, creative flow, routine, break and restore, or sleep. Rest is treated as part of the work. A timed session ends with a slow fade, a real break with a quiet stream, and a gentle return. The author also built it as a working example of audio-reactive design that serves a practical purpose for people.
+Background sound helps some people with some tasks and hurts others, so the tool asks what you are doing before it plays anything: deep focus, reading and writing, creative flow, routine, break and restore, or sleep. Rest is treated as part of the work. A timed session ends with a slow fade and a short arpeggio going down, then a silent break, then an arpeggio going up when it is time to come back. The author also built it as a working example of audio-reactive design that serves a practical purpose for people.
 
 ## How to use it
 

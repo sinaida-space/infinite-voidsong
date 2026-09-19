@@ -48,6 +48,7 @@ export class AudioEngine {
   private pending: AppState | null = null; // state received before start()
   private started = false;
   private transportOpen = false;
+  private held = false;                     // silence on purpose (end of work, pause): nothing reopens the sound until start()
   private generation = 0;                  // invalidates a pause()/end() that start() overtakes
 
   constructor(private readonly bus: Bus) {
@@ -68,6 +69,7 @@ export class AudioEngine {
   /** Resume the context, play the 55 Hz signature swell, fade the transport in over 6 s. */
   async start(): Promise<void> {
     this.generation++;
+    this.held = false;
     if (this.ctx.state !== 'running') await this.ctx.resume();
     await loadNoiseWorklet(this.ctx);          // sources check availability at construction
     this.started = true;
@@ -96,8 +98,8 @@ export class AudioEngine {
     if (!prev || prev.master.volume !== state.master.volume) {
       rampTo(this.graph.input.gain, state.master.volume, now, VOLUME_RAMP);
     }
-    // After end() the transport is closed; a fresh state (the break mix) reopens it gently.
-    if (!this.transportOpen && this.ctx.state === 'running') {
+    // After end() or pause() the transport stays closed until start(): a state change must not bring the sound back.
+    if (!this.transportOpen && !this.held && this.ctx.state === 'running') {
       fadeIn(this.graph.transport.gain, now, REOPEN);
       this.transportOpen = true;
     }
@@ -109,17 +111,19 @@ export class AudioEngine {
     const gen = ++this.generation;
     fadeOut(this.graph.transport.gain, this.ctx.currentTime, fadeSec);
     this.transportOpen = false;
+    this.held = true;
     await wait(fadeSec);
     if (gen !== this.generation) return;      // start() came in during the fade
     this.meter.stop();
     await this.ctx.suspend();
   }
 
-  /** The descent: fade the transport out over `fadeSec`; the context keeps running for the break. */
+  /** The descent: fade the transport out over `fadeSec` and stay silent (the break) until start(). The context keeps running so the end-of-work and end-of-break signals can sound. */
   async end(fadeSec: number): Promise<void> {
     const gen = ++this.generation;
     fadeOut(this.graph.transport.gain, this.ctx.currentTime, fadeSec);
     this.transportOpen = false;
+    this.held = true;
     await wait(fadeSec);
     if (gen !== this.generation) return;
   }

@@ -12,7 +12,7 @@ import { store } from './state/store';
 import { setTimerDeps } from './state/session';
 import type { AppState } from './state/types';
 import { AudioEngine } from './audio/engine';
-import { playChime, type ChimeVariant } from './audio/chime';
+import { playChime, type ChimeDirection } from './audio/chime';
 import { TunnelRenderer } from './visual/renderer';
 import { mountApp } from './ui/app';
 import { attachLook } from './visual/look';
@@ -59,6 +59,8 @@ if (new URLSearchParams(location.search).get('welcome') === '1') {
 // Exposed for task 15's GUIDE button / `?` key, and reachable from the dev
 // console in the meantime: `openGuide()`.
 if (import.meta.env.DEV) {
+  // Dev only: lets tests read the engine's real output gain.
+  (window as unknown as { __voidsong: unknown }).__voidsong = { get engine() { return engine; } };
   (window as unknown as { openGuide: typeof openGuide }).openGuide = openGuide;
 }
 
@@ -92,16 +94,14 @@ function beginPlayback(): Promise<void> {
 // changes (end of work, resume-cue); it only knows the small TimerEngine
 // shape, not the real class, and is constructed before the engine exists —
 // so this proxy defers to whichever engine instance is current.
-// The end-of-session signal. Chosen from the three voices in src/audio/chime.ts.
-const END_CHIME: ChimeVariant = 'glass';
-
 setTimerDeps({
   engine: {
-    chime: () => {
+    // Down when the work block ends, up when the break ends (the break itself is silent).
+    chime: (direction: ChimeDirection) => {
       const s = store.get();
       if (!engine || s.playback !== 'playing') return; // silent when the person has paused
       // Follows the master volume, but never inaudible and never loud.
-      playChime(engine.context, END_CHIME, Math.min(0.5, Math.max(0.15, 0.1 + s.master.volume * 0.45)));
+      playChime(engine.context, direction, Math.min(0.5, Math.max(0.15, 0.1 + s.master.volume * 0.45)));
     },
     start: () => beginPlayback(),
     pause: (fadeSec?: number) => (engine ? engine.pause(fadeSec) : Promise.resolve()),
