@@ -84,7 +84,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     id: 'keyboard',
     title: 'Keyboard',
     body: [
-      'Space plays and pauses. The arrow keys move master volume up and down, and step between layers left and right. M mutes the selected layer. Esc closes the open panel. The number keys 1 to 6 jump to a preset. The question mark key opens this guide.',
+      'Space plays and pauses. The arrow keys move master volume up and down, and step between layers left and right. M mutes the selected layer. H hides the interface and F goes full screen. Every shortcut follows the physical key, so it also works on a Russian layout. Esc closes the open panel. The number keys 1 to 6 jump to a preset. The question mark key opens this guide.',
     ],
   },
 ];
