@@ -106,23 +106,56 @@
   outline: none;
 }
 
-/* Break / resume ritual */
+/* Break / resume ritual: a window in the page, not a cover. The title and the
+   footer stay; the mixer and the player step aside for the length of the break. */
 
 .ritual {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--void);
-  text-align: center;
-  padding: 24px;
+  padding: 0;
 }
 
 .ritual .win {
-  width: min(28rem, calc(100vw - 2rem));
-  text-align: left;
+  width: min(36rem, 100%);
+  margin: 6vh auto;
+}
+
+:root[data-break] .col-mixer,
+:root[data-break] .col-side > :not(#timer) {
+  display: none;
+}
+
+:root[data-break] .app-layout {
+  grid-template-columns: 1fr;
+}
+
+.ritual__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.ritual__actions button {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid var(--gunmetal);
+  background: transparent;
+  color: var(--chalk);
+  font-family: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.ritual__actions .ritual__back {
+  border-color: var(--red);
+  color: var(--red-text);
+}
+
+.ritual__actions button:hover,
+.ritual__actions button:focus-visible {
+  border-color: var(--fog);
+  color: var(--chalk);
 }
 
 .ritual__message {

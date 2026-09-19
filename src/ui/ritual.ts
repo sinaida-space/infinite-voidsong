@@ -1,5 +1,5 @@
 import { bus } from '../state/events';
-import { formatMMSS } from '../state/session';
+import { formatMMSS, seekTimeline, stopTimer } from '../state/session';
 
 function buildWinBar(title: string): HTMLDivElement {
   const bar = document.createElement('div');
@@ -13,8 +13,11 @@ function buildWinBar(title: string): HTMLDivElement {
   return bar;
 }
 
-/** Break screen: a centred "Break. Back in mm:ss" window, announced politely. */
-export function createBreakScreen(): { el: HTMLElement; body: HTMLElement; update: (remainingMs: number) => void } {
+/**
+ * Break window: "Break. Back in mm:ss", the timeline, and two ways out. It sits in
+ * the page like the other windows, so the title and the footer stay on screen.
+ */
+export function createBreakScreen(): { el: HTMLElement; body: HTMLElement; actions: HTMLElement; update: (remainingMs: number) => void } {
   const el = document.createElement('div');
   el.className = 'ritual';
   el.hidden = true;
@@ -32,6 +35,22 @@ export function createBreakScreen(): { el: HTMLElement; body: HTMLElement; updat
   message.setAttribute('aria-live', 'polite');
   body.appendChild(message);
 
+  // Ways out of the break.
+  const actions = document.createElement('div');
+  actions.className = 'ritual__actions';
+  const back = document.createElement('button');
+  back.type = 'button';
+  back.className = 'ritual__back';
+  back.textContent = 'Back to work';
+  back.addEventListener('click', () => seekTimeline(0)); // a fresh work block, with the sound and the signal
+  const end = document.createElement('button');
+  end.type = 'button';
+  end.className = 'ritual__end';
+  end.textContent = 'End session';
+  end.addEventListener('click', () => stopTimer());
+  actions.append(back, end);
+  body.appendChild(actions);
+
   el.appendChild(win);
 
   function update(remainingMs: number): void {
@@ -39,7 +58,7 @@ export function createBreakScreen(): { el: HTMLElement; body: HTMLElement; updat
   }
 
   update(0);
-  return { el, body, update };
+  return { el, body, actions, update };
 }
 
 let toastTimeout: ReturnType<typeof setTimeout> | null = null;
