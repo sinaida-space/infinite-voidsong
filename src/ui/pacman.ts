@@ -4,6 +4,7 @@
 // anywhere: the best score lives only until the tab closes.
 
 import '../styles/pacman.css';
+import { shortcutKey } from './keys';
 
 // --- maze -----------------------------------------------------------------------------
 // # wall   . pellet   o power pellet   - ghost door   P Pac-Man start   (space) empty
@@ -507,9 +508,10 @@ export function openPacman(): void {
   raf = requestAnimationFrame(frame);
 
   // --- input ----------------------------------------------------------------------------
+  // Physical keys (see keys.ts), so WASD works on a Russian layout too: ц ф ы в.
   const KEYS: Record<string, Dir> = {
     ArrowUp: UP, ArrowDown: DOWN, ArrowLeft: LEFT, ArrowRight: RIGHT,
-    w: UP, s: DOWN, a: LEFT, d: RIGHT, W: UP, S: DOWN, A: LEFT, D: RIGHT,
+    w: UP, s: DOWN, a: LEFT, d: RIGHT,
   };
 
   function steer(d: Dir): void {
@@ -525,10 +527,11 @@ export function openPacman(): void {
   }
 
   const onKey = (e: KeyboardEvent): void => {
-    if (e.key === 'Escape') { e.preventDefault(); shut(); return; }
-    const d = KEYS[e.key];
+    const key = shortcutKey(e);
+    if (key === 'Escape') { e.preventDefault(); shut(); return; }
+    const d = KEYS[key];
     if (d) { e.preventDefault(); steer(d); return; }
-    if (e.key === ' ' || e.key === 'Enter') {
+    if (key === ' ' || key === 'Enter') {
       if (e.target === close) return; // let the close button work
       e.preventDefault();
       if (phase === 'ready' || phase === 'over') start();

@@ -231,12 +231,18 @@ body::after {
 
 
 /* Hide-UI mode always shows a way back. */
-.show-ui {
+.ui-back {
   display: none;
   position: fixed;
   top: 16px;
   right: 16px;
   z-index: 70;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.show-ui {
   padding: 10px 16px;
   border: 1px solid var(--gunmetal);
   background: rgba(5, 5, 5, 0.85);
@@ -254,8 +260,8 @@ body::after {
   color: var(--red-text);
 }
 
-:root[data-ui='hidden'] .show-ui {
-  display: block;
+:root[data-ui='hidden'] .ui-back {
+  display: flex;
 }
 
 /* Playback cue on the page itself: the tunnel dims when the sound is not playing. */

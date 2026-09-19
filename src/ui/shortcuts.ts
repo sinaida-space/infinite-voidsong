@@ -4,6 +4,8 @@ import type { AppState } from '../state/types';
 import { togglePlayback, PRESET_ORDER, toggleHideUi, showUi } from './transport';
 import { getSelectedLayerIndex } from './mixer';
 import { openGuide } from './guide';
+import { shortcutKey, hasCommandModifier } from './keys';
+import { toggleFullscreen } from './fullscreen';
 
 const STEP = 0.05;
 
@@ -18,11 +20,12 @@ function isTypingTarget(target: EventTarget | null): boolean {
 }
 
 function handleKeydown(event: KeyboardEvent): void {
-  if (isTypingTarget(event.target)) return;
+  if (isTypingTarget(event.target) || hasCommandModifier(event)) return;
 
-  switch (event.key) {
+  // The physical key, so every shortcut also works on a Russian layout (h is р, f is а, m is ь).
+  const key = shortcutKey(event);
+  switch (key) {
     case ' ':
-    case 'Spacebar':
       event.preventDefault();
       togglePlayback();
       break;
@@ -40,7 +43,7 @@ function handleKeydown(event: KeyboardEvent): void {
     case 'ArrowRight':
     case 'ArrowLeft': {
       event.preventDefault();
-      const delta = event.key === 'ArrowRight' ? STEP : -STEP;
+      const delta = key === 'ArrowRight' ? STEP : -STEP;
       const index = getSelectedLayerIndex();
       store.set((s: AppState) => {
         const layers = [...s.layers] as AppState['layers'];
@@ -50,8 +53,7 @@ function handleKeydown(event: KeyboardEvent): void {
       break;
     }
 
-    case 'm':
-    case 'M': {
+    case 'm': {
       const index = getSelectedLayerIndex();
       store.set((s: AppState) => {
         const layers = [...s.layers] as AppState['layers'];
@@ -68,9 +70,13 @@ function handleKeydown(event: KeyboardEvent): void {
       break;
 
     case 'h':
-    case 'H':
       event.preventDefault();
       toggleHideUi();
+      break;
+
+    case 'f':
+      event.preventDefault();
+      toggleFullscreen();
       break;
 
     case '?':
@@ -84,7 +90,7 @@ function handleKeydown(event: KeyboardEvent): void {
     case '4':
     case '5':
     case '6': {
-      const id = PRESET_ORDER[Number(event.key) - 1];
+      const id = PRESET_ORDER[Number(key) - 1];
       if (id) applyPreset(id);
       break;
     }
