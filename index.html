@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Infinite Voidsong</title>
-  <meta name="description" content="Endless generated soundscapes for focused work. Made by Sinaida (https://sinaida.eu)" />
+  <meta name="description" content="Endless generated soundscapes for focused work." />
   <link rel="canonical" href="__SITE_URL__" />
   <link rel="stylesheet" href="/src/styles/tokens.css" />
   <link rel="stylesheet" href="/src/styles/base.css" />
@@ -15,7 +15,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Infinite Voidsong" />
   <meta property="og:title" content="Infinite Voidsong" />
-  <meta property="og:description" content="Endless generated soundscapes for focused work. Made by Sinaida (https://sinaida.eu)" />
+  <meta property="og:description" content="Endless generated soundscapes for focused work." />
   <meta property="og:url" content="__SITE_URL__" />
   <meta property="og:image" content="__SITE_URL__og-v2.png" />
   <meta property="og:image:width" content="1200" />
@@ -24,22 +24,50 @@
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Infinite Voidsong" />
-  <meta name="twitter:description" content="Endless generated soundscapes for focused work. Made by Sinaida (https://sinaida.eu)" />
+  <meta name="twitter:description" content="Endless generated soundscapes for focused work." />
   <meta name="twitter:image" content="__SITE_URL__og-v2.png" />
   <link rel="icon" href="/favicon.ico" sizes="48x48" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta name="theme-color" content="#cd0000" />
-  <meta name="author" content="Sinaida Krivchenko" />
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="What this site is, for language models" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Infinite Voidsong",
+    "url": "__SITE_URL__",
+    "description": "Endless generated soundscapes for focused work, with timed work-and-break sessions and an audio-reactive tunnel. Runs entirely in the browser.",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Any modern web browser",
+    "browserRequirements": "Requires JavaScript, Web Audio and WebGL2",
+    "isAccessibleForFree": true,
+    "inLanguage": "en",
+    "author": {
+      "@type": "Person",
+      "name": "Sinaida Krivchenko",
+      "url": "https://sinaida.eu/",
+      "jobTitle": "New media artist",
+      "address": { "@type": "PostalAddress", "addressLocality": "Prague", "addressCountry": "CZ" }
+    }
+  }
+  </script>
 </head>
 <body>
   <div class="browser-tint browser-tint--top" aria-hidden="true"></div>
   <div class="browser-tint browser-tint--bottom" aria-hidden="true"></div>
+  <noscript>
+    <div style="background:#050505;color:#f6f6f6;font-family:monospace;padding:2rem;line-height:1.6;max-width:44rem;margin:0 auto">
+      <h1>INFINITE VOIDSONG</h1>
+      <p>Endless generated soundscapes for focused work, with timed work-and-break sessions. It needs JavaScript, because all sound is generated live in your browser with the Web Audio API.</p>
+      <p>Made by Sinaida Krivchenko, a new media artist in Prague: <a href="https://sinaida.eu/">sinaida.eu</a>.</p>
+      <p><a href="/guide.html">Guide</a> · <a href="/research.html">Research and sources</a> · <a href="/privacy.html">Privacy policy</a> · <a href="/terms.html">Terms and conditions</a> · <a href="/llms.txt">Plain-text description</a></p>
+    </div>
+  </noscript>
   <canvas id="tunnel" aria-hidden="true"></canvas>
   <div id="banner"></div>
   <div id="onboarding"></div>
   <main id="app"></main>
-  <div id="timer"></div>
   <div id="guide"></div>
   <footer id="footer"></footer>
   <div id="ui-hint" class="ui-hint" aria-hidden="true">Show UI (H)</div>

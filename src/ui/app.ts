@@ -1,6 +1,7 @@
 import { mountMixer } from './mixer';
 import { mountMaster } from './master';
 import { mountTransport } from './transport';
+import { mountTimer } from './timer';
 import { initShortcuts } from './shortcuts';
 
 // Toasts are rendered by ritual.ts's mountToast(), mounted once from main.ts —
@@ -13,8 +14,13 @@ export function mountApp(root: HTMLElement): void {
 
   const heading = document.createElement('h1');
   heading.className = 'app-title glitch';
-  heading.textContent = 'Infinite Voidsong';
-  heading.dataset.text = 'Infinite Voidsong';
+  heading.textContent = 'INFINITE VOIDSONG';
+  heading.dataset.text = 'INFINITE VOIDSONG';
+  // A small secret: the wordmark opens a hidden game (loaded only when it is asked for).
+  heading.style.cursor = 'pointer';
+  heading.addEventListener('click', () => {
+    void import('./pacman').then((m) => m.openPacman());
+  });
   root.appendChild(heading);
 
   const layout = document.createElement('div');
@@ -28,7 +34,7 @@ export function mountApp(root: HTMLElement): void {
 
   const sideCol = document.createElement('section');
   sideCol.className = 'col col-side';
-  sideCol.setAttribute('aria-label', 'Player and presets');
+  sideCol.setAttribute('aria-label', 'Session, player and presets');
   layout.appendChild(sideCol);
 
   const mixerMount = document.createElement('div');
@@ -37,11 +43,17 @@ export function mountApp(root: HTMLElement): void {
   const masterMount = document.createElement('div');
   mixerCol.appendChild(masterMount);
 
+  // Session first, then the player and the presets below it.
+  const timerMount = document.createElement('div');
+  timerMount.id = 'timer';
+  sideCol.appendChild(timerMount);
+
   const transportMount = document.createElement('div');
   sideCol.appendChild(transportMount);
 
   mountMixer(mixerMount);
   mountMaster(masterMount);
+  mountTimer(timerMount);
   mountTransport(transportMount);
 
   initShortcuts();

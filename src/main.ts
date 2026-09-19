@@ -16,7 +16,6 @@ import { TunnelRenderer } from './visual/renderer';
 import { mountApp } from './ui/app';
 import { attachLook } from './visual/look';
 import { mountOnboarding, showWelcome } from './ui/onboarding';
-import { mountTimer } from './ui/timer';
 import { mountToast } from './ui/ritual';
 import { mountBanner } from './ui/banner';
 import { mountMediaSession } from './ui/mediasession';
@@ -39,7 +38,6 @@ if (!renderer.available) document.documentElement.dataset.gl = 'off'; // dark gr
 
 mountApp(el('app'));
 mountOnboarding();
-mountTimer();
 mountToast(); // the one toast renderer (ritual.ts) — see the note in ui/app.ts
 mountBanner(el('banner'), {
   initiallyDismissed: store.get().noticeDismissed,

@@ -4,6 +4,7 @@ import { store } from '../state/store';
 import { applyPreset } from '../state/presets';
 import { startTimer, setCustomDurations, CUSTOM_WORK_RANGE, CUSTOM_BREAK_RANGE } from '../state/session';
 import { createStars } from './stars';
+import { mountFooter } from './footer';
 
 type NoiseAnswer = 'quiet' | 'home' | 'office' | 'varies';
 type OutputAnswer = 'headphones' | 'speakers';
@@ -457,6 +458,15 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
     syncCards();
 
     renderActions({ label: 'Begin', onClick: begin });
+
+    // The same footer as the app, so the welcome does not just end at the Begin button.
+    const footerHost = document.createElement('div');
+    footerHost.className = 'term__footer';
+    body.appendChild(footerHost);
+    mountFooter(footerHost, {
+      onHome: () => overlay.scrollTo({ top: 0, behavior: 'smooth' }),
+      onWelcome: () => overlay.scrollTo({ top: 0, behavior: 'smooth' }),
+    });
     // The dialog always starts at its top, whatever the boot screen's scroll or focus did.
     overlay.scrollTop = 0;
     window.scrollTo(0, 0);

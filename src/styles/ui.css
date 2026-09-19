@@ -65,18 +65,23 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 12px 14px 0;
+  padding: 14px 14px 2px;
 }
 
 .win__title {
   font-family: var(--font-ui), 'Courier New', monospace;
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--red-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Layer cards sit inside the Mixer window, so their titles step down one size. */
+.layer-card .win__title {
+  font-size: 0.85rem;
 }
 
 .win__close {
