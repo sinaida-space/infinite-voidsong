@@ -26,7 +26,7 @@ Background sound helps some people with some tasks and hurts others, so the tool
 1. Open the site. A short welcome asks for a mode, a session length, your space and how you listen, then starts the sound.
 2. Sessions: 25/5 (short sprints, the Pomodoro method), 50/10 (a longer block), 90/15 (one attention cycle), Custom (your own minutes of work and break) or no timer.
 3. While a session runs, a timeline shows one work-and-break cycle. Click or drag it to jump to any point.
-4. Keyboard: Space plays and pauses, 1 to 6 choose presets, arrows change volume, H hides the interface and leaves the artwork and the timer.
+4. Keyboard: Space plays and pauses, 1 to 6 choose presets, arrows change volume, H hides the interface and leaves the artwork and the timer, F goes full screen. Shortcuts work on a Russian keyboard layout too.
 
 ## What it is not
 

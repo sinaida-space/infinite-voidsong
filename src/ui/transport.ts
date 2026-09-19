@@ -2,6 +2,7 @@ import { store } from '../state/store';
 import { bus } from '../state/events';
 import { applyPreset } from '../state/presets';
 import type { AppState, TaskPreset } from '../state/types';
+import { fullscreenSupported, isFullscreen, toggleFullscreen, onFullscreenChange } from './fullscreen';
 import { openGuide } from './guide';
 
 function buildWinBar(title: string): HTMLDivElement {
@@ -169,14 +170,34 @@ export function mountTransport(root: HTMLElement): void {
 
   // A permanent way back for hide-UI mode: a phone has no H key, and a hint that fades
   // after a few seconds leaves nothing to press.
+  const back = document.createElement('div');
+  back.className = 'ui-back';
+  const touch = typeof matchMedia === 'function' && matchMedia('(hover: none)').matches;
+
   const showUi = document.createElement('button');
   showUi.type = 'button';
   showUi.className = 'show-ui';
-  const touch = typeof matchMedia === 'function' && matchMedia('(hover: none)').matches;
   showUi.textContent = touch ? 'Show interface' : 'Show interface (H)';
   showUi.setAttribute('aria-label', 'Show the interface');
   showUi.addEventListener('click', () => applyUiHidden(false));
-  document.body.appendChild(showUi);
+  back.appendChild(showUi);
+
+  // Full screen sits beside it (an iPhone cannot do full screen for a web page, so no button there).
+  if (fullscreenSupported()) {
+    const fs = document.createElement('button');
+    fs.type = 'button';
+    fs.className = 'show-ui';
+    const label = (): void => {
+      const on = isFullscreen();
+      fs.textContent = (on ? 'Exit full screen' : 'Full screen') + (touch ? '' : ' (F)');
+      fs.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen');
+    };
+    fs.addEventListener('click', toggleFullscreen);
+    onFullscreenChange(label);
+    label();
+    back.appendChild(fs);
+  }
+  document.body.appendChild(back);
 
   // --- Presets window ------------------------------------------------------
   const presetsWin = document.createElement('div');
