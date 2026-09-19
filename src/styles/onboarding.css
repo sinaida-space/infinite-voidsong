@@ -72,7 +72,7 @@
 
 .term__copy {
   max-width: 62ch;
-  font-family: var(--font-legal), sans-serif;
+  font-family: var(--font-ui), 'Courier New', monospace;
   font-size: 15px;
   line-height: 1.55;
   color: var(--haze);
@@ -169,7 +169,7 @@
   border: none;
   background: none;
   color: var(--slate);
-  font-family: var(--font-legal), sans-serif;
+  font-family: var(--font-ui), 'Courier New', monospace;
   font-size: 13px;
   text-decoration: underline;
   cursor: pointer;
@@ -183,7 +183,7 @@
 
 .term__privacy {
   color: var(--slate);
-  font-family: var(--font-legal), sans-serif;
+  font-family: var(--font-ui), 'Courier New', monospace;
   font-size: 12px;
   text-decoration: underline;
 }

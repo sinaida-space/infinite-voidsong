@@ -1,4 +1,5 @@
-/* Infinite Voidsong — UI component styles */
+/* Infinite Voidsong — UI component styles: windows on a CRT, in the
+   sinaida.eu hover-card register (flat scrim, one red hairline, no frame). */
 
 .app-shell {
   padding: 16px;
@@ -17,6 +18,7 @@
   padding-bottom: 12px;
   letter-spacing: 0.01em;
   font-weight: normal;
+  text-shadow: 0 0 6px rgba(205, 0, 0, 0.45), 0 0 14px rgba(205, 0, 0, 0.2);
 }
 
 .app-layout {
@@ -39,21 +41,76 @@
   min-width: 0;
 }
 
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.72rem;
-  color: var(--fog);
-  margin: 0 0 10px;
+/* Windows — modelled on sinaida.eu's own hover-card / notice-surface
+   treatment: a flat scrim with no frame, lit only from a red hairline on
+   the top edge, a soft shadow to separate it from the tunnel behind it.
+   No dither, no decorative squares, no idle glow. */
+
+.win {
+  position: relative;
+  background: rgba(5, 5, 5, 0.88);
+  border-top: 1px solid rgba(205, 0, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.panel {
-  border: 1px solid var(--graphite);
-  background: rgba(5, 5, 5, 0.72);
-  padding: 16px;
+.win.is-active {
+  border-top-color: rgba(205, 0, 0, 1);
+}
+
+.win__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px 0;
+}
+
+.win__title {
+  font-family: var(--font-ui), 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--red-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.win__close {
+  appearance: none;
+  border: 1px solid var(--gunmetal);
+  background: none;
+  color: var(--chalk);
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 7px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.win__close:hover,
+.win__close:focus-visible {
+  border-color: var(--red-text);
+  color: var(--red-text);
+}
+
+.win__body {
+  position: relative;
+  padding: 8px 14px 14px;
+  flex: 1;
+  min-width: 0;
 }
 
 /* Mixer */
+
+.transport-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
 
 .mixer {
   display: grid;
@@ -68,23 +125,13 @@
 }
 
 .layer-card {
-  border: 1px solid var(--graphite);
-  background: rgba(5, 5, 5, 0.72);
-  padding: 14px;
+  gap: 0;
+}
+
+.layer-card__body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.layer-card.is-selected {
-  border-color: var(--haze);
-}
-
-.layer-card__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
 }
 
 .source-select {
@@ -168,6 +215,13 @@
   color: var(--red-text);
 }
 
+/* Cathode glow — the one secondary phosphor color, reserved for Focus
+   Boost and the timer readout (session.css). */
+.is-cathode {
+  color: var(--cathode);
+  text-shadow: 0 0 6px rgba(167, 190, 190, 0.4), 0 0 14px rgba(167, 190, 190, 0.18);
+}
+
 .note {
   font-size: 0.72rem;
   color: var(--slate);
@@ -212,6 +266,12 @@
   color: var(--void);
 }
 
+.transport__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .preset-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -238,32 +298,31 @@
   font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  align-self: flex-start;
 }
 
-/* Toasts */
-
-.toast-root {
-  position: fixed;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 30;
-  pointer-events: none;
-}
+/* Toast */
 
 .toast {
-  border: 1px solid var(--graphite);
-  background: rgba(5, 5, 5, 0.92);
-  color: var(--chalk);
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  z-index: 110;
+  width: max-content;
+  max-width: min(90vw, 360px);
+}
+
+.toast[hidden] {
+  display: none;
+}
+
+.toast__body {
   padding: 9px 16px;
+  color: var(--chalk);
   font-size: 0.78rem;
 }
 
-/* Range inputs */
+/* Range inputs — flat red fill. */
 
 input[type='range'] {
   -webkit-appearance: none;
