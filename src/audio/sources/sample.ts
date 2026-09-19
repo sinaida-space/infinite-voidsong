@@ -82,6 +82,7 @@ class SampleSource extends BaseSource {
       if (this.fallbackSrc && this.synthUntil >= 0 && ctx.currentTime > this.synthUntil) this.dropFallback();
       if (!this.buffer) return;
       if (this.nextPass < 0) this.nextPass = Math.max(ctx.currentTime, from);
+      if (this.nextPass < from - XFADE) this.nextPass = from;   // timer stalled: do not book a burst of past passes
       while (this.nextPass < to) this.nextPass += this.bookPass(this.nextPass);
     });
     this.onDispose(() => this.teardown());
