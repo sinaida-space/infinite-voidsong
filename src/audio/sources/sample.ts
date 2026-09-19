@@ -12,7 +12,9 @@
 //   pass n   ──────────────╲
 //   pass n+1          ╱──────────────╲      (starts at end − XFADE)
 //
-// The decoded AudioBuffer is cached per file for the session. Files are
+// The decoded AudioBuffer (about 21 MB of RAM per 56 s stereo loop) is shared by
+// every layer that plays the file, decoded once even when two layers ask at the
+// same time, and dropped a minute after the last layer stops using it. Files are
 // fetched from /audio/<file>; the service worker keeps them in its own cache.
 import { FAMILY_OF, type SourceId } from '../../state/types';
 import { fadeIn, fadeOut } from '../crossfade';
@@ -22,7 +24,33 @@ import { BaseSource, type SoundSource, type SourceFactory } from '../source';
 const XFADE = 3;              // seconds: the synth → sample swap and the pass overlap
 const CURVE_POINTS = 32;      // resolution of the equal-power gain curves
 
-const buffers = new Map<string, AudioBuffer>();
+const RELEASE_MS = 60_000;    // a released buffer stays this long, so toggling a layer back on is instant
+
+interface Entry { buf?: AudioBuffer; loading?: Promise<AudioBuffer | null>; refs: number; timer?: ReturnType<typeof setTimeout> }
+const entries = new Map<string, Entry>();
+
+function acquire(file: string): Entry {
+  let e = entries.get(file);
+  if (!e) { e = { refs: 0 }; entries.set(file, e); }
+  e.refs++;
+  if (e.timer !== undefined) { clearTimeout(e.timer); e.timer = undefined; }
+  return e;
+}
+
+function release(file: string, e: Entry): void {
+  if (--e.refs > 0) return;
+  e.timer = setTimeout(() => { if (e.refs === 0 && entries.get(file) === e) entries.delete(file); }, RELEASE_MS);
+}
+
+async function fetchAndDecode(ctx: AudioContext, file: string): Promise<AudioBuffer | null> {
+  try {
+    const res = await fetch(`/audio/${file}`);
+    if (!res.ok) return null;
+    return await ctx.decodeAudioData(await res.arrayBuffer());
+  } catch {
+    return null;               // offline, blocked or undecodable: the synth keeps playing
+  }
+}
 
 // Equal-power curves: rising sin, falling cos.
 const CURVE_IN = new Float32Array(CURVE_POINTS);
@@ -44,7 +72,8 @@ class SampleSource extends BaseSource {
   private fallbackSrc: SoundSource | null = null;
   private synthGain: GainNode | null = null;
   private readonly sampleGain: GainNode;
-  private readonly abort = new AbortController();
+  private readonly entry: Entry;
+  private disposed = false;
   private readonly passes = new Set<Pass>();
   private buffer: AudioBuffer | null = null;
   private nextPass = -1;
@@ -65,9 +94,9 @@ class SampleSource extends BaseSource {
     this.sampleGain = this.own(new GainNode(ctx, { gain: this.sampleLevel }));
     this.sampleGain.connect(this.env);
 
-    const cached = buffers.get(file);
-    if (cached) {
-      this.buffer = cached;               // already decoded: no synth needed
+    this.entry = acquire(file);
+    if (this.entry.buf) {
+      this.buffer = this.entry.buf;               // already decoded: no synth needed
     } else {
       this.synthGain = this.own(new GainNode(ctx, { gain: 1 }));
       this.synthGain.connect(this.env);
@@ -94,18 +123,11 @@ class SampleSource extends BaseSource {
   }
 
   private async load(): Promise<void> {
-    try {
-      const res = await fetch(`/audio/${this.file}`, { signal: this.abort.signal });
-      if (!res.ok) return;
-      const raw = await res.arrayBuffer();
-      if (this.abort.signal.aborted) return;
-      const buf = await this.ctx.decodeAudioData(raw);
-      buffers.set(this.file, buf);
-      if (this.abort.signal.aborted) return;
-      this.swapIn(buf);
-    } catch {
-      // Offline, blocked, aborted or undecodable: the synth keeps playing.
-    }
+    const e = this.entry;
+    const buf = await (e.loading ??= fetchAndDecode(this.ctx, this.file));
+    if (!buf) { e.loading = undefined; return; }   // a later layer may retry
+    e.buf = buf;
+    if (!this.disposed) this.swapIn(buf);
   }
 
   /** Buffer ready while the synth is playing: crossfade synth → sample. */
@@ -151,7 +173,8 @@ class SampleSource extends BaseSource {
   }
 
   private teardown(): void {
-    this.abort.abort();
+    this.disposed = true;
+    release(this.file, this.entry);
     this.dropFallback();
     for (const { src, gain } of this.passes) {
       src.onended = null;
