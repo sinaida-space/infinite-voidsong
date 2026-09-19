@@ -353,7 +353,7 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
         choice.session = sdef.id;
         choice.sessionTouched = true;
         syncCards();
-        if (sdef.id === 'custom') workInput.focus();
+        if (sdef.id === 'custom') workInput.focus({ preventScroll: true });
       });
       sessionCards.set(sdef.id, card);
       sessionGrid.appendChild(card);
@@ -440,8 +440,8 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
     }
     syncCards();
 
-    const beginBtn = renderActions({ label: 'Begin', onClick: begin });
-    beginBtn?.scrollIntoView({ block: 'nearest' });
+    renderActions({ label: 'Begin', onClick: begin });
+    overlay.scrollTop = 0; // the dialog always starts at its top
   }
 
   async function runIntro(): Promise<void> {
@@ -454,7 +454,7 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
 
     // First screen is only the boot log; Continue (or Enter) opens the dialog.
     const continueBtn = renderActions({ label: 'Continue', onClick: showDialog });
-    continueBtn?.focus();
+    continueBtn?.focus({ preventScroll: true });
     setKeyHandler((e) => {
       if (e.key === 'Enter') showDialog();
     });

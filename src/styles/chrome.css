@@ -164,3 +164,32 @@
 .notice-banner {
   padding-bottom: calc(0.85rem + env(safe-area-inset-bottom, 0px));
 }
+
+/* Phones in Safari: wide solid red bands above and below the page. Safari draws its own
+   translucent bars over the content and a gradient scrim behind them, which looks dirty
+   against a scrolling page. Solid bands sit under those bars, so the content passes
+   behind the band and never shows through. The part of each band off-screen only keeps
+   it hugging the edge, which is what Safari 26 samples for its tint. */
+@media (max-width: 768px) and (hover: none) {
+  @supports (font: -apple-system-body) {
+    .browser-tint {
+      z-index: 80;
+    }
+
+    .browser-tint--top {
+      top: -160px;
+      height: calc(160px + 28px);
+    }
+
+    .browser-tint--bottom {
+      bottom: -160px;
+      height: calc(160px + 56px);
+    }
+
+    /* Keep the first and last lines of every page clear of the bands. */
+    body {
+      padding-top: 28px;
+      padding-bottom: 56px;
+    }
+  }
+}
