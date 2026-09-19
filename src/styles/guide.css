@@ -4,7 +4,7 @@
  * app. This is a fallback: task 15 ships the real `.win` / `.win__bar` /
  * `.win__title` / `.win__close` / `.win__body` chrome, and its rules take
  * over once that file loads after this one. Geist Pixel only, per spec —
- * the app's other legal-style pages default to Libre Franklin, this one
+ * the app's other legal-style pages default to a text face, this one
  * does not.
  */
 
