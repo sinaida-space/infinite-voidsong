@@ -21,8 +21,8 @@ const BOOT_LINES = [
 const BOOT_PROMPT_LINE = '> all sound is generated in this browser. nothing leaves your device.';
 
 const INTRO_COPY =
-  `Endless generated soundscapes for${NBSP}focused work. Pick a mode and${NBSP}a${NBSP}session, ` +
-  `then begin. You can change everything afterwards.`;
+  `Endless generated soundscapes for${NBSP}focused work. Four quick choices, then begin. ` +
+  `You can change everything afterwards.`;
 
 interface ModeDef {
   id: TaskPreset;
@@ -108,16 +108,24 @@ const SESSIONS_NOTE =
   `No study fixes the perfect length. These are common working conventions, so try more than${NBSP}one. ` +
   `What research does support is taking real breaks.`;
 
-const NOISE_OPTIONS: Array<{ value: NoiseAnswer; label: string }> = [
-  { value: 'quiet', label: 'Quiet' },
-  { value: 'home', label: 'Home' },
-  { value: 'office', label: 'Open office' },
-  { value: 'varies', label: 'It varies' },
+interface ChoiceDef<T extends string> {
+  id: T;
+  name: string;
+  blurb: string;
+}
+
+// These two change the mix a little (see applyPreset): more masking noise in an
+// open office, a softer mix in a quiet room, a slightly lower volume on speakers.
+const SPACES: Array<ChoiceDef<NoiseAnswer>> = [
+  { id: 'quiet', name: 'Quiet', blurb: `A quiet room. The mix stays a${NBSP}little softer.` },
+  { id: 'home', name: 'Home', blurb: `Everyday sound around you. The mix stays as${NBSP}designed.` },
+  { id: 'office', name: 'Open office', blurb: `Talk and${NBSP}movement nearby. The mix adds more masking noise.` },
+  { id: 'varies', name: 'It varies', blurb: `Different places on${NBSP}different days. The mix stays as${NBSP}designed.` },
 ];
 
-const OUTPUT_OPTIONS: Array<{ value: OutputAnswer; label: string }> = [
-  { value: 'headphones', label: 'Headphones' },
-  { value: 'speakers', label: 'Speakers' },
+const OUTPUTS: Array<ChoiceDef<OutputAnswer>> = [
+  { id: 'headphones', name: 'Headphones', blurb: `The full mix at${NBSP}its designed level.` },
+  { id: 'speakers', name: 'Speakers', blurb: `The volume goes down a${NBSP}little, because speakers fill the room.` },
 ];
 
 function findRootOrCreate(id: string): HTMLElement {
@@ -399,49 +407,60 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
     research.textContent = 'Research and sources';
     note.append(research);
 
-    // Fine-tune (optional) -----------------------------------------------------------
-    const more = document.createElement('details');
-    more.className = 'term__more';
-    const summary = document.createElement('summary');
-    summary.textContent = 'Fine-tune (optional)';
-    more.appendChild(summary);
-    const moreRow = document.createElement('div');
-    moreRow.className = 'term__more-row';
-    const select = <T extends string>(label: string, options: Array<{ value: T; label: string }>, current: T, onPick: (v: T) => void) => {
-      const wrap = document.createElement('label');
-      wrap.className = 'term__field';
-      const text = document.createElement('span');
-      text.textContent = label;
-      const sel = document.createElement('select');
-      sel.className = 'term__select';
-      for (const o of options) {
-        const opt = document.createElement('option');
-        opt.value = o.value;
-        opt.textContent = o.label;
-        if (o.value === current) opt.selected = true;
-        sel.appendChild(opt);
+    // Your space and listening device: the same kind of choice as mode and session -------
+    function choiceSection<T extends string>(
+      label: string,
+      aria: string,
+      defs: Array<ChoiceDef<T>>,
+      current: () => T,
+      onPick: (v: T) => void,
+    ): { label: HTMLParagraphElement; grid: HTMLDivElement; sync: () => void } {
+      const heading = document.createElement('p');
+      heading.className = 'term__label';
+      heading.textContent = label;
+      const grid = document.createElement('div');
+      grid.className = 'choice-grid';
+      grid.setAttribute('role', 'group');
+      grid.setAttribute('aria-label', aria);
+      const cards = new Map<T, HTMLButtonElement>();
+      for (const d of defs) {
+        const card = optionCard(d.name, d.blurb);
+        card.addEventListener('click', () => {
+          onPick(d.id);
+          syncCards();
+        });
+        cards.set(d.id, card);
+        grid.appendChild(card);
       }
-      sel.addEventListener('change', () => onPick(sel.value as T));
-      wrap.append(text, sel);
-      return wrap;
-    };
-    moreRow.append(
-      select('Your space', NOISE_OPTIONS, choice.noise, (v) => { choice.noise = v; }),
-      select('Listening on', OUTPUT_OPTIONS, choice.output, (v) => { choice.output = v; }),
-    );
-    more.appendChild(moreRow);
+      const sync = (): void => {
+        for (const [id, card] of cards) card.setAttribute('aria-pressed', String(id === current()));
+      };
+      return { label: heading, grid, sync };
+    }
+    const spaceSection = choiceSection('3 · Your space', 'Your space', SPACES, () => choice.noise, (v) => { choice.noise = v; });
+    const outputSection = choiceSection('4 · Listening on', 'Listening on', OUTPUTS, () => choice.output, (v) => { choice.output = v; });
 
-    dialog.append(modeLabel, modeGrid, sessionLabel, sessionGrid, custom, note, more);
+    dialog.append(
+      modeLabel, modeGrid,
+      sessionLabel, sessionGrid, custom, note,
+      spaceSection.label, spaceSection.grid,
+      outputSection.label, outputSection.grid,
+    );
 
     function syncCards(): void {
       for (const [id, card] of modeCards) card.setAttribute('aria-pressed', String(id === choice.mode));
       for (const [id, card] of sessionCards) card.setAttribute('aria-pressed', String(id === choice.session));
       custom.hidden = choice.session !== 'custom';
+      spaceSection.sync();
+      outputSection.sync();
     }
     syncCards();
 
     renderActions({ label: 'Begin', onClick: begin });
-    overlay.scrollTop = 0; // the dialog always starts at its top
+    // The dialog always starts at its top, whatever the boot screen's scroll or focus did.
+    overlay.scrollTop = 0;
+    window.scrollTo(0, 0);
+    requestAnimationFrame(() => { overlay.scrollTop = 0; });
   }
 
   async function runIntro(): Promise<void> {
