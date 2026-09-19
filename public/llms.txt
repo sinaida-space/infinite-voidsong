@@ -1,1 +1,61 @@
-Infinite Voidsong is a web application for composing atmospheric soundscapes for focus, creativity, and rest. The application provides a collection of sounds organized by family and preset combinations for different work modes and time blocks.
+# Infinite Voidsong
+
+> A free web tool that generates endless background soundscapes for focused work, with timed work-and-break sessions and an audio-reactive tunnel. It runs entirely in the browser. Made by Sinaida Krivchenko, a Prague-based new media artist.
+
+Live: https://infinite-voidsong.vercel.app/
+
+## What it is
+
+Infinite Voidsong plays sound that is generated live in the browser with the Web Audio API. There are no recordings and no loops, so nothing repeats in a way you can hear and nothing is downloaded beyond the page itself. You mix up to four layers at once.
+
+- Noise: white to brown, with a tilt control.
+- Water, air and fire: rain, ocean, stream, underwater, wind, campfire with crickets.
+- Places: café, library, train cabin, fan hum. The murmur is built to be unintelligible.
+- Music: generative drone, lo-fi, plucks, synthwave, Berlin-school sequencer, house and chillhop. All instrumental, steady, with no drops.
+- Tone: one steady tone with adjustable pitch.
+- Focus Boost: a fast pulse (12 to 20 times a second) on the music layer, with depth and rate controls.
+
+Behind the interface is a WebGL2 tunnel that reacts to the sound. Colour follows the selected sound, and the view can be steered with the mouse or, on a phone, by tilting the device.
+
+## Why it exists
+
+Background sound helps some people with some tasks and hurts others, so the tool asks what you are doing before it plays anything: deep focus, reading and writing, creative flow, routine, break and restore, or sleep. Rest is treated as part of the work. A timed session ends with a slow fade, a real break with a quiet stream, and a gentle return. The author also built it as a working example of audio-reactive design that serves a practical purpose for people.
+
+## How to use it
+
+1. Open the site. A short welcome asks for a mode, a session length, your space and how you listen, then starts the sound.
+2. Sessions: 25/5 (short sprints, the Pomodoro method), 50/10 (a longer block), 90/15 (one attention cycle), Custom (your own minutes of work and break) or no timer.
+3. While a session runs, a timeline shows one work-and-break cycle. Click or drag it to jump to any point.
+4. Keyboard: Space plays and pauses, 1 to 6 choose presets, arrows change volume, H hides the interface and leaves the artwork and the timer.
+
+## What it is not
+
+It is not a medical device or therapy and makes no health claims. Effects of background sound vary between people and tasks, and the evidence is mixed. The Research page lists the studies it draws on and what each one does and does not show. Volume guidance is an estimate.
+
+## Privacy
+
+No accounts, no analytics, no cookies, no third-party requests. Mixer settings stay in the browser's own storage on the visitor's device. Hosted on Vercel.
+
+## Pages
+
+- App: https://infinite-voidsong.vercel.app/
+- Guide (sessions, presets, sounds, loudness): https://infinite-voidsong.vercel.app/guide.html
+- Research and sources: https://infinite-voidsong.vercel.app/research.html
+- Keyboard shortcuts: https://infinite-voidsong.vercel.app/shortcuts.html
+- Privacy policy: https://infinite-voidsong.vercel.app/privacy.html
+- Terms and conditions: https://infinite-voidsong.vercel.app/terms.html
+
+## Technical notes
+
+Vite and TypeScript with no runtime dependencies. Web Audio API for all sound, WebGL2 for the visuals, a service worker for offline use. Works on desktop and mobile browsers.
+
+## About the author
+
+Sinaida Krivchenko is a Prague-based new media artist building living visual systems for stages and physical spaces: real-time TouchDesigner and GLSL work, interactive projections and audio-reactive visuals for live performance. She trained as a biomedical engineer (MSc, Bauman Moscow State Technical University), with earlier careers in IT leadership at General Electric and in creative direction for cultural institutions in Amsterdam. She works with performing-arts organisations, musicians, festivals and cultural institutions.
+
+- Website and portfolio: https://sinaida.eu/
+- Work with her: https://sinaida.eu/collaborate
+- Artist CV (PDF): https://sinaida.eu/files/sinaida-krivchenko-cv.pdf
+- Instagram: https://www.instagram.com/sin.ai.da/
+- LinkedIn: https://www.linkedin.com/in/sinaida
+- Location: Prague, CZ

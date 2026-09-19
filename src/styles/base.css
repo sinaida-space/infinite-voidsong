@@ -24,19 +24,8 @@ body {
   grid-template-areas:
     'banner'
     'app'
-    'timer'
     'footer';
-  grid-template-rows: auto 1fr auto auto;
-}
-
-@media (min-width: 960px) {
-  body {
-    grid-template-areas:
-      'banner banner'
-      'app timer'
-      'footer footer';
-    grid-template-columns: 1fr 320px;
-  }
+  grid-template-rows: auto 1fr auto;
 }
 
 html[data-gl='off'] body {
@@ -60,18 +49,7 @@ html[data-gl='off'] body {
   min-width: 0;
 }
 
-#timer {
-  grid-area: timer;
-}
 
-/* Stacked layout: the session window lines up with the app column above it. */
-@media (max-width: 959px) {
-  #timer {
-    width: min(100%, 1100px);
-    margin: 0 auto;
-    padding: 0 16px 24px;
-  }
-}
 
 #footer {
   grid-area: footer;
@@ -235,6 +213,7 @@ body::after {
 }
 
 :root[data-ui='hidden'] #timer {
+  visibility: visible; /* it sits inside the hidden layout, so it opts back in */
   position: fixed;
   inset: auto 0 20px 0;
   display: flex;

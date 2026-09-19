@@ -16,6 +16,14 @@ async function mountNotFoundArt(): Promise<void> {
 
     const pick = names[Math.floor(Math.random() * names.length)];
     img.src = `/404/${pick}`;
+
+    // A small secret: the monster opens a hidden game (loaded only when it is asked for).
+    const open = (): void => { void import('./pacman').then((m) => m.openPacman()); };
+    img.style.cursor = 'pointer';
+    img.tabIndex = 0;
+    img.setAttribute('role', 'button');
+    img.addEventListener('click', open);
+    img.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
   } catch {
     // No artwork today — the panel still reads fine without it.
     img.remove();

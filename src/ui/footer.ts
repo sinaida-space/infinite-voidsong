@@ -5,6 +5,7 @@
 // `__BUILD_MONTH__` are injected at build time (see vite.config.ts).
 
 import './scroll'; // every page opens at the top
+import './brand'; // the product name is always red capitals
 
 declare const __APP_VERSION__: string;
 declare const __BUILD_MONTH__: string;
@@ -23,6 +24,15 @@ function link(href: string, label: string, external = false): HTMLAnchorElement 
 export interface FooterOptions {
   /** On the app page: open the welcome in place so playback is not interrupted. */
   onWelcome?: () => void;
+  /** Where "go home" should scroll to when you are already home (default: the top of the page). */
+  onHome?: () => void;
+}
+
+const isHome = (): boolean => location.pathname === '/' || location.pathname === '/index.html';
+
+function scrollTopSmooth(): void {
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
 }
 
 function heading(text: string): HTMLParagraphElement {
@@ -66,7 +76,18 @@ export function mountFooter(root: HTMLElement, options: FooterOptions = {}): HTM
   const buildMonth = typeof __BUILD_MONTH__ === 'string' ? __BUILD_MONTH__ : '';
   version.textContent = `v${appVersion} · ${buildMonth}`;
 
-  about.append(heading('Infinite Voidsong'), tagline, credit, version);
+  // The product name is the home link: from the app it scrolls to the top, from any other page it goes home.
+  const brand = heading('Infinite Voidsong');
+  brand.textContent = '';
+  const brandLink = link('/', 'Infinite Voidsong');
+  brandLink.className = 'site-footer__brand';
+  brandLink.addEventListener('click', (e) => {
+    if (!isHome()) return; // normal navigation
+    e.preventDefault();
+    (options.onHome ?? scrollTopSmooth)();
+  });
+  brand.appendChild(brandLink);
+  about.append(brand, tagline, credit, version);
 
   // Column 2: navigate. Other pages reach the welcome through `/?welcome=1`;
   // the app page opens it in place.

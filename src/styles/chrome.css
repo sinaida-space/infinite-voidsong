@@ -193,3 +193,22 @@
     }
   }
 }
+
+/* The product name: red capitals everywhere it appears (see src/ui/brand.ts). */
+.brand {
+  color: var(--red-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.site-footer .site-footer__brand,
+.site-footer .site-footer__brand:hover,
+.site-footer .site-footer__brand:focus-visible {
+  color: var(--red-text);
+  border-bottom-color: transparent;
+}
+
+.site-footer .site-footer__brand:hover,
+.site-footer .site-footer__brand:focus-visible {
+  border-bottom-color: var(--red);
+}
