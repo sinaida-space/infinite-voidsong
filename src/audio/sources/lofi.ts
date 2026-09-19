@@ -7,7 +7,9 @@ import { makeReverb } from '../music/reverb';
 import { makeTape } from '../music/tape';
 import { makeSidechain } from '../music/sidechain';
 import { whiteNoiseBuffer } from '../music/buffers';
-import { chordDegrees, degreeToHz, PROGRESSION } from '../music/scale';
+import { chordDegrees, degreeToHz } from '../music/scale';
+import { makeHarmonyCursor } from '../music/harmony';
+import { drumPhrase } from '../music/phrase';
 import { emitBeat } from '../music/beat';
 import { clamp, rand } from '../music/util';
 
@@ -159,7 +161,8 @@ export const lofi: SourceFactory = (ctx: AudioContext): LofiSource => {
   let barBpm = params.bpm;          // tempo is read once per bar so a bar keeps one grid
   let lastPattern = -1;
   let current: Pattern = POOL[0];
-  let chordIndex = -1;
+  let phrase: Pattern[] = [];       // Harmony Gentle / Drift: the bars of the current phrase (one bar when Off)
+  const harmony = makeHarmonyCursor(CHORD_EVERY_BARS);
   let started = false;
 
   const stepTime = (s: number): number => {
@@ -173,22 +176,28 @@ export const lofi: SourceFactory = (ctx: AudioContext): LofiSource => {
   const beginBar = (t: number): void => {
     barBpm = params.bpm;
     barStart = t;
-    let p: number;
-    do { p = Math.floor(Math.random() * POOL.length); } while (p === lastPattern);
-    lastPattern = p;
-    const hats = POOL[p].hat.split('').map(c => (c === 'x' && Math.random() < HAT_DROP_CHANCE ? '.' : c)).join('');
-    current = { kick: POOL[p].kick, snare: POOL[p].snare, hat: hats };
+    const h = harmony(bar, t, (60 / barBpm) * 4);
+    // A new pattern each bar (Off), each two bars (Gentle) or each four bars (Drift); never the same twice in a row.
+    if (h.phraseBar === 0) {
+      let p: number;
+      do { p = Math.floor(Math.random() * POOL.length); } while (p === lastPattern);
+      lastPattern = p;
+      phrase = drumPhrase(POOL[p], h.phraseBars);
+    }
+    const p = lastPattern;
+    const base = phrase[h.phraseBar];
+    const hats = base.hat.split('').map(c => (c === 'x' && Math.random() < HAT_DROP_CHANCE ? '.' : c)).join('');
+    current = { kick: base.kick, snare: base.snare, hat: hats };
 
     let chord: string | null = null;
-    if (bar % CHORD_EVERY_BARS === 0) {
-      chordIndex = (chordIndex + 1) % PROGRESSION.length;
-      const roman = PROGRESSION[chordIndex];
+    if (h.roman) {
+      const roman = h.roman;
       chord = roman;
       rhodesRelease(t);
       // Voiced an octave below the root register, occasionally with the top note dropped an octave.
       const degrees = chordDegrees(roman);
       const voicing = Math.random() < 0.3 ? [degrees[0], degrees[1], degrees[2], degrees[3] - 7] : degrees;
-      for (const d of voicing) rhodesOn(t + rand(0, 0.02), degreeToHz(d - 7), rand(0.14, 0.2));
+      for (const d of voicing) rhodesOn(t + rand(0, 0.02), degreeToHz(d - 7, undefined, h.rootShift), rand(0.14, 0.2));
     }
 
     const info: BarInfo = { bar, time: t, bpm: barBpm, pattern: p, chord, signature: `${current.kick}|${current.snare}|${current.hat}` };

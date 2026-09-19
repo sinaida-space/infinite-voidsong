@@ -12,6 +12,8 @@ import { makePingPong } from '../music/pingpong';
 import { gridLane, STEPS } from '../music/grid';
 import { noiseBurst, cleanupOnEnd } from '../music/hits';
 import { degreeToHz, sessionScale } from '../music/scale';
+import { makeHarmonyCursor } from '../music/harmony';
+import { linePhrase, varyLine } from '../music/phrase';
 import { emitBeat } from '../music/beat';
 import { clamp, dbToGain, ramp, rand } from '../music/util';
 
@@ -40,9 +42,10 @@ export const berlin: SourceFactory = (ctx: AudioContext): SequencedSource => {
   // and mutations lean on it (see mutate), so lines rest on root/fifth pillars.
   const penta = sessionScale.pentatonic;
   const POOL_SIZE = penta.length * 2;
+  let keyShift = 0;   // Harmony Drift: semitones from the session root, set on a bar line
   const poolHz = (i: number, octaveUp: number): number => {
     const octave = Math.floor(i / penta.length) - 1 + octaveUp;
-    return degreeToHz(octave * penta.length + (i % penta.length), penta);
+    return degreeToHz(octave * penta.length + (i % penta.length), penta, keyShift);
   };
   const FIFTH_INDEX = penta.indexOf(7);   // 3 in Dorian, 3 in Lydian
 
@@ -145,6 +148,14 @@ export const berlin: SourceFactory = (ctx: AudioContext): SequencedSource => {
 
   let barsToMutation = Math.floor(rand(MUTATE_MIN_BARS, MUTATE_MAX_BARS + 1));
   let highStep = 0;      // the octave line advances every second 16th
+  // Harmony Off plays the two 16-step lines as they are. Gentle turns the low line into a
+  // two-bar phrase and Drift into four bars (A A' A B); Drift also stretches the octave line
+  // to 32 notes. The lines above stay the source and keep mutating; a phrase is rebuilt
+  // from them every time it starts.
+  const harmony = makeHarmonyCursor(2);
+  let lowPhrase: Line[] = [];
+  let lowBar: Line = lowLine;
+  let highCells: Line = highLine;
   let barBpm = params.bpm;
   let started = false;
 
@@ -155,20 +166,33 @@ export const berlin: SourceFactory = (ctx: AudioContext): SequencedSource => {
       mutate();
       barsToMutation = Math.floor(rand(MUTATE_MIN_BARS, MUTATE_MAX_BARS + 1));
     }
+    const h = harmony(bar, t, (60 / bpm) * 4);
+    keyShift = h.rootShift;
+    if (h.mode === 'off') {
+      lowBar = lowLine;
+      highCells = highLine;
+    } else {
+      if (h.phraseBar === 0) {
+        lowPhrase = linePhrase(lowLine, h.phraseBars);
+        highCells = h.phraseBars === 4 ? [...highLine, ...varyLine(highLine, 3)] : highLine;
+        highStep = 0;   // the octave line restarts with the phrase so both stay aligned
+      }
+      lowBar = lowPhrase[h.phraseBar];
+    }
     const show = (l: Line) => l.map((v) => (v === null ? '.' : v)).join(',');
-    const info: BarInfo = { bar, time: t, bpm, pattern: 0, chord: null, signature: `${show(lowLine)}|${show(highLine)}` };
+    const info: BarInfo = { bar, time: t, bpm, pattern: 0, chord: null, signature: `${show(lowBar)}|${show(highCells)}` };
     source.onBar?.(info);
   };
 
   const step = (t: number, s: number): void => {
     const sec = sixteenthSec(barBpm);
-    const n = lowLine[s];
+    const n = lowBar[s];
     if (n !== null) gateVoice(low, t, poolHz(n, 0), sec);
     if (s % 2 === 0) {
       // Half speed: the high line reads one step per eighth and holds for two 16ths.
-      const h = highLine[highStep];
+      const h = highCells[highStep % highCells.length];
       if (h !== null) gateVoice(high, t, poolHz(h, 1), sec * 2);
-      highStep = (highStep + 1) % STEPS;
+      highStep = (highStep + 1) % (STEPS * 4);
       if (params.pulse > 0.01) pulse(t);
       // The beat meter follows the quarter-note pulse; silent pulse, no beat.
       if (s % 4 === 0 && params.pulse > 0.05) { emitBeat(t); source.onBeat?.(t); }

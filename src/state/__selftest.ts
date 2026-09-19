@@ -21,6 +21,10 @@ assert.ok(hash.startsWith('#v1.'), 'hash must start with #v1.');
 const decoded = decodeHash(hash);
 assert.deepStrictEqual(decoded, payload, 'round-trip encode/decode must be equal');
 
+const withHarmony: HashPayload = { ...payload, harmony: 'drift' };
+assert.deepStrictEqual(decodeHash(encodeHash(withHarmony)), withHarmony, 'harmony survives the hash round-trip');
+assert.strictEqual(decodeHash(hash)?.harmony, undefined, 'a hash without harmony decodes without it (the store reads that as off)');
+
 for (const [id, def] of Object.entries(PRESET_TABLE)) {
   const hasSound = def.layers.some((l) => l.source !== 'none');
   assert.ok(hasSound, `preset "${id}" must have at least one non-'none' layer`);

@@ -62,6 +62,12 @@ export interface SessionState {
   sleepEndsAt: number | null;       // epoch ms, sleep timer
 }
 
+// Music harmony: Off = ii–V–I–vi and one-bar patterns, Gentle = circle-of-fifths
+// progressions and two-bar phrases, Drift = Gentle plus four-bar phrases and slow key moves.
+export type HarmonyMode = 'off' | 'gentle' | 'drift';
+export const HARMONY_MODES: readonly HarmonyMode[] = ['off', 'gentle', 'drift'];
+export const isHarmonyMode = (v: unknown): v is HarmonyMode => v === 'off' || v === 'gentle' || v === 'drift';
+
 export type Playback = 'idle' | 'starting' | 'playing' | 'paused';
 
 export interface AppState {
@@ -71,6 +77,7 @@ export interface AppState {
   master: MasterState;
   focusBoost: FocusBoost;
   preset: TaskPreset | null;
+  harmony: HarmonyMode;             // default 'gentle' for new users; saved state without the field loads as 'off'
   session: SessionState;
   onboarded: boolean;
   noticeDismissed: boolean;
