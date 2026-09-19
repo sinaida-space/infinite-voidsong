@@ -19,7 +19,12 @@ function link(href: string, label: string, external = false): HTMLAnchorElement 
   return a;
 }
 
-export function mountFooter(root: HTMLElement): HTMLElement {
+export interface FooterOptions {
+  /** On the app page: open the welcome in place so playback is not interrupted. */
+  onWelcome?: () => void;
+}
+
+export function mountFooter(root: HTMLElement, options: FooterOptions = {}): HTMLElement {
   const footer = document.createElement('footer');
   footer.className = 'site-footer';
 
@@ -61,8 +66,18 @@ export function mountFooter(root: HTMLElement): HTMLElement {
 
   const navList = document.createElement('ul');
   navList.className = 'site-footer__links';
+  // Other pages reach the welcome through `/?welcome=1`; the app page opens it in place.
+  const welcomeLink = link('/?welcome=1', 'Welcome screen');
+  if (options.onWelcome) {
+    const open = options.onWelcome;
+    welcomeLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      open();
+    });
+  }
   const navItems: HTMLAnchorElement[] = [
     link('/guide.html', 'Guide'),
+    welcomeLink,
     link('/privacy.html', 'Privacy'),
     link('/shortcuts.html', 'Shortcuts'),
     link('https://sinaida.eu', 'sinaida.eu', true),

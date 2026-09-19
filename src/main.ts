@@ -14,7 +14,7 @@ import type { AppState } from './state/types';
 import { AudioEngine } from './audio/engine';
 import { TunnelRenderer } from './visual/renderer';
 import { mountApp } from './ui/app';
-import { mountOnboarding } from './ui/onboarding';
+import { mountOnboarding, showWelcome } from './ui/onboarding';
 import { mountTimer } from './ui/timer';
 import { mountToast } from './ui/ritual';
 import { mountBanner } from './ui/banner';
@@ -41,8 +41,14 @@ mountBanner(el('banner'), {
   initiallyDismissed: store.get().noticeDismissed,
   onDismiss: () => store.set({ noticeDismissed: true }),
 });
-mountFooter(el('footer'));
+mountFooter(el('footer'), { onWelcome: showWelcome });
 mountGuide(el('guide'));
+
+// `/?welcome=1` (footer link on the other pages) reopens the welcome screen.
+if (new URLSearchParams(location.search).get('welcome') === '1') {
+  history.replaceState(null, '', location.pathname + location.hash);
+  showWelcome();
+}
 
 // Exposed for task 15's GUIDE button / `?` key, and reachable from the dev
 // console in the meantime: `openGuide()`.
