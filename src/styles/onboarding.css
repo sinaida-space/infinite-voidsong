@@ -179,41 +179,6 @@ html:has(.term) {
   color: var(--slate);
 }
 
-.term__more {
-  margin-top: 18px;
-  font-size: 13px;
-  color: var(--fog);
-}
-
-.term__more summary {
-  cursor: pointer;
-  width: fit-content;
-}
-
-.term__more-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 24px;
-  margin-top: 12px;
-}
-
-.term__field {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--chalk);
-}
-
-.term__select {
-  padding: 6px 8px;
-  border: 1px solid var(--gunmetal);
-  background: var(--void);
-  color: var(--chalk);
-  font-family: inherit;
-  font-size: 13px;
-}
-
 /* Actions */
 
 .term__actions {

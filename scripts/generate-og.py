@@ -1,8 +1,10 @@
-"""Builds public/og.png (1200x630), the link-preview image.
+"""Builds public/og-v2.png (1200x630), the link-preview image.
 
 Void ground, a monster from 404_images/ dithered in Void and brand red with the
 same 4x4 Bayer matrix as sinaida.eu, the wordmark in Geist Pixel with a neon
 glow, the tagline, and the author line. Needs Pillow:  pip install pillow
+Link-preview services cache an image by its URL, so when the picture changes,
+bump the suffix (og-v2 -> og-v3) here, in index.html and in scripts/smoke.mjs.
 Run from the repo root:  python3 scripts/generate-og.py
 """
 import random
@@ -12,7 +14,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 ROOT = Path(__file__).resolve().parent.parent
 FONT_TTF = ROOT / "scripts" / "fonts" / "GeistPixel-Regular.ttf"   # Geist Pixel, SIL Open Font License
 SOURCE = ROOT / "404_images" / "slopter_81.png"
-OUT = ROOT / "public" / "og.png"
+OUT = ROOT / "public" / "og-v2.png"
 CROP_TOP = 0.0   # 0 = keep the top of the picture, 1 = the bottom (where the face sits differs per monster)
 
 VOID = (5, 5, 5)

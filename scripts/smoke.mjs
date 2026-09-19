@@ -47,7 +47,7 @@ const DIST_FILES = [
   'dist/guide.html',
   'dist/404.html',
   'dist/sw.js',
-  'dist/og.png',
+  'dist/og-v2.png',
   'dist/favicon.ico',
   'dist/favicon.svg',
   'dist/apple-touch-icon.png',
