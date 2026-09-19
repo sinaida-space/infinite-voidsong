@@ -4,12 +4,18 @@
     <loc>https://infinite-voidsong.vercel.app/</loc>
   </url>
   <url>
+    <loc>https://infinite-voidsong.vercel.app/guide.html</loc>
+  </url>
+  <url>
     <loc>https://infinite-voidsong.vercel.app/privacy.html</loc>
   </url>
   <url>
-    <loc>https://infinite-voidsong.vercel.app/shortcuts.html</loc>
+    <loc>https://infinite-voidsong.vercel.app/terms.html</loc>
   </url>
   <url>
-    <loc>https://infinite-voidsong.example/guide</loc>
+    <loc>https://infinite-voidsong.vercel.app/research.html</loc>
+  </url>
+  <url>
+    <loc>https://infinite-voidsong.vercel.app/shortcuts.html</loc>
   </url>
 </urlset>

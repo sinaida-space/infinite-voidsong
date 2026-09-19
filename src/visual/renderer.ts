@@ -15,10 +15,11 @@ const HALF_RES_BELOW_PX = 600;   // mobile widths render at half resolution
 const MAX_DT = 0.05;             // clamp after a stall so nothing jumps
 const DITHER_SCALE = 2;          // dither cell size in device pixels (visible at dpr 1.5)
 const DITHER_DEFAULT = 0.8;      // 0 smooth .. 1 fully dithered
+const LOOK_RATE = 5;             // 1/s: how quickly the view follows the pointer or tilt
 
 const UNIFORMS = [
   'uRes', 'uTime', 'uTravel', 'uSpeed', 'uFamily', 'uLevels', 'uBeat',
-  'uLineColor', 'uLineColorFar', 'uLobe', 'uLineBright', 'uGrain', 'uWidthAdd', 'uDpr', 'uDither', 'uDitherScale',
+  'uLineColor', 'uLineColorFar', 'uLobe', 'uLineBright', 'uGrain', 'uWidthAdd', 'uDpr', 'uDither', 'uDitherScale', 'uLook',
 ] as const;
 type UniformName = typeof UNIFORMS[number];
 
@@ -35,6 +36,8 @@ export class TunnelRenderer {
   private travel = 0;            // ∫ speed dt
   private dpr = 1;
   private dither = DITHER_DEFAULT;
+  private lookTarget: [number, number] = [0, 0];
+  private look: [number, number] = [0, 0];
   private hidden = document.visibilityState === 'hidden';
   private observer: ResizeObserver | null = null;
   private readonly unsubscribe: Array<() => void> = [];
@@ -89,6 +92,22 @@ export class TunnelRenderer {
   setDither(v: number): void {
     this.dither = Math.min(1, Math.max(0, Number.isFinite(v) ? v : DITHER_DEFAULT));
     this.requestFrame();
+  }
+
+  /** Steer the view, x and y in -1..1 (mouse position or phone tilt). Ignored under reduced motion. */
+  setLook(x: number, y: number): void {
+    if (this.reactive.reducedMotion) {
+      this.lookTarget = [0, 0];
+    } else {
+      const clamp = (v: number) => Math.min(1, Math.max(-1, Number.isFinite(v) ? v : 0));
+      this.lookTarget = [clamp(x), clamp(y)];
+    }
+    this.requestFrame();
+  }
+
+  /** True while the smoothed look still has to catch up with its target. */
+  private get lookSettling(): boolean {
+    return Math.abs(this.lookTarget[0] - this.look[0]) > 0.002 || Math.abs(this.lookTarget[1] - this.look[1]) > 0.002;
   }
 
   destroy(): void {
@@ -222,7 +241,7 @@ export class TunnelRenderer {
     const dt = Math.min(MAX_DT, Math.max(0, (now - this.lastFrame) / 1000));
     this.lastFrame = now;
     this.draw(dt);
-    if (this.reactive.animating && !this.hidden && !this.destroyed) {
+    if ((this.reactive.animating || this.lookSettling) && !this.hidden && !this.destroyed) {
       this.rafId = requestAnimationFrame(this.tick);
     }
   };
@@ -231,6 +250,11 @@ export class TunnelRenderer {
     const gl = this.gl;
     if (!gl || !this.program || !this.vao) return;
     const p = this.reactive.update(dt);
+
+    // Ease the look toward its target so the view glides instead of snapping.
+    const k = 1 - Math.exp(-LOOK_RATE * dt);
+    this.look[0] += (this.lookTarget[0] - this.look[0]) * k;
+    this.look[1] += (this.lookTarget[1] - this.look[1]) * k;
 
     // Time advances only while the picture is allowed to move.
     const moving = !this.reactive.reducedMotion && this.reactive.motion !== 'still';
@@ -258,6 +282,7 @@ export class TunnelRenderer {
     gl.uniform1f(L.uDpr!, this.dpr);
     gl.uniform1f(L.uDither!, this.dither);
     gl.uniform1f(L.uDitherScale!, DITHER_SCALE);
+    gl.uniform2f(L.uLook!, this.look[0], this.look[1]);
     gl.bindVertexArray(this.vao);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.bindVertexArray(null);

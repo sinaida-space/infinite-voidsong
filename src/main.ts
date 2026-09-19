@@ -14,10 +14,12 @@ import type { AppState } from './state/types';
 import { AudioEngine } from './audio/engine';
 import { TunnelRenderer } from './visual/renderer';
 import { mountApp } from './ui/app';
+import { attachLook } from './visual/look';
 import { mountOnboarding, showWelcome } from './ui/onboarding';
 import { mountTimer } from './ui/timer';
 import { mountToast } from './ui/ritual';
 import { mountBanner } from './ui/banner';
+import { mountMediaSession } from './ui/mediasession';
 import { mountFooter } from './ui/footer';
 import { mountGuide, openGuide } from './ui/guide';
 
@@ -30,6 +32,7 @@ function el(id: string): HTMLElement {
 // --- renderer ----------------------------------------------------------------
 
 const renderer = new TunnelRenderer(el('tunnel') as HTMLCanvasElement, bus);
+attachLook(renderer); // mouse on desktop, tilt on phones
 
 // --- UI mounts -----------------------------------------------------------------
 
@@ -43,6 +46,7 @@ mountBanner(el('banner'), {
 });
 mountFooter(el('footer'), { onWelcome: showWelcome });
 mountGuide(el('guide'));
+mountMediaSession();
 
 // `/?welcome=1` (footer link on the other pages) reopens the welcome screen.
 if (new URLSearchParams(location.search).get('welcome') === '1') {

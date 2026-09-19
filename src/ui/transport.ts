@@ -135,10 +135,10 @@ export function mountTransport(root: HTMLElement): void {
 
   applyUiHidden(readStoredHidden(), false);
 
-  // --- Transport window --------------------------------------------------
+  // --- Player window --------------------------------------------------
   const transportWin = document.createElement('div');
   transportWin.className = 'win';
-  transportWin.appendChild(buildWinBar('Transport'));
+  transportWin.appendChild(buildWinBar('Player'));
 
   const transportBody = document.createElement('div');
   transportBody.className = 'win__body transport';

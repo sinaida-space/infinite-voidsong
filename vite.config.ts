@@ -69,6 +69,8 @@ export default defineConfig({
         privacy: 'privacy.html',
         shortcuts: 'shortcuts.html',
         guide: 'guide.html',
+        terms: 'terms.html',
+        research: 'research.html',
         notFound: '404.html',
       },
     },

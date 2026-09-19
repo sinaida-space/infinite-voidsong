@@ -36,6 +36,8 @@ interface Refs {
   bandLabel: HTMLParagraphElement;
   boostInput: HTMLInputElement;
   boostValue: HTMLSpanElement;
+  rateInput: HTMLInputElement;
+  rateValue: HTMLSpanElement;
 }
 
 let refs: Refs | null = null;
@@ -43,7 +45,7 @@ let lastKey = '';
 
 function render(state: AppState): void {
   if (!refs) return;
-  const key = `${state.master.volume}|${state.focusBoost.depth}`;
+  const key = `${state.master.volume}|${state.focusBoost.depth}|${state.focusBoost.rateHz}`;
   if (key === lastKey) return;
   lastKey = key;
 
@@ -62,6 +64,12 @@ function render(state: AppState): void {
   }
   setRangeFill(refs.boostInput);
   refs.boostValue.textContent = `${Math.round(state.focusBoost.depth * 100)}%`;
+
+  if (document.activeElement !== refs.rateInput) {
+    refs.rateInput.value = String(Math.round(state.focusBoost.rateHz));
+  }
+  setRangeFill(refs.rateInput);
+  refs.rateValue.textContent = `${Math.round(state.focusBoost.rateHz)} Hz`;
 }
 
 export function mountMaster(root: HTMLElement): void {
@@ -124,9 +132,31 @@ export function mountMaster(root: HTMLElement): void {
   boostInput.setAttribute('aria-label', 'Focus Boost, pulse on music');
   body.appendChild(boostInput);
 
+  const rateLabelRow = document.createElement('div');
+  rateLabelRow.className = 'control-row__label';
+  rateLabelRow.style.marginTop = '8px';
+  const rateLabel = document.createElement('label');
+  rateLabel.htmlFor = 'focus-rate';
+  rateLabel.className = 'is-cathode';
+  rateLabel.textContent = 'Pulse rate';
+  const rateValue = document.createElement('span');
+  rateValue.className = 'readout is-cathode';
+  rateLabelRow.appendChild(rateLabel);
+  rateLabelRow.appendChild(rateValue);
+  body.appendChild(rateLabelRow);
+
+  const rateInput = document.createElement('input');
+  rateInput.type = 'range';
+  rateInput.id = 'focus-rate';
+  rateInput.min = '12';
+  rateInput.max = '20';
+  rateInput.step = '1';
+  rateInput.setAttribute('aria-label', 'Pulse rate in hertz, 12 to 20');
+  body.appendChild(rateInput);
+
   const hint = document.createElement('p');
   hint.className = 'hint';
-  hint.textContent = 'May help some people sustain attention.';
+  hint.textContent = 'May help some people sustain attention. Early evidence: if it distracts you, set it to 0.';
   body.appendChild(hint);
 
   masterInput.addEventListener('input', () => {
@@ -146,7 +176,14 @@ export function mountMaster(root: HTMLElement): void {
     store.set((s: AppState) => ({ ...s, focusBoost: { ...s.focusBoost, depth: pct / 100 } }));
   });
 
-  refs = { masterInput, masterValue, bandLabel, boostInput, boostValue };
+  rateInput.addEventListener('input', () => {
+    setRangeFill(rateInput);
+    const hz = Number(rateInput.value);
+    rateValue.textContent = `${hz} Hz`;
+    store.set((s: AppState) => ({ ...s, focusBoost: { ...s.focusBoost, rateHz: hz } }));
+  });
+
+  refs = { masterInput, masterValue, bandLabel, boostInput, boostValue, rateInput, rateValue };
 
   store.subscribe(render);
   render(store.get());
