@@ -344,3 +344,14 @@
 .ritual .timeline {
   margin: 24px 0 0;
 }
+
+.timer__warmup-note {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--slate);
+}
+
+.timer__warmup-note[hidden] {
+  display: none;
+}
