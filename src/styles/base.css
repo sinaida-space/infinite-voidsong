@@ -111,3 +111,153 @@ input {
   white-space: nowrap;
   border: 0;
 }
+
+/* Scanlines — a low-alpha overlay across the whole UI layer, CRT-style. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, 0.12) 2px 4px);
+}
+
+/* CRT glitch — fires briefly every few seconds on the two headings that
+   carry it (the app wordmark, the onboarding welcome title). Duplicate
+   layers read `data-text` and slice themselves in and out via clip-path;
+   the base element itself never moves, so layout never shifts. */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.glitch::before {
+  color: var(--red-text);
+  animation: glitch-slice-red 11s steps(1) infinite;
+}
+
+.glitch::after {
+  color: var(--cathode);
+  animation: glitch-slice-cathode 11s steps(1) infinite;
+}
+
+@keyframes glitch-slice-red {
+  0%,
+  96%,
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: translate(0, 0);
+  }
+  96.5% {
+    opacity: 0.85;
+    clip-path: inset(10% 0 60% 0);
+    transform: translate(-3px, 0);
+  }
+  97.2% {
+    opacity: 0.85;
+    clip-path: inset(55% 0 10% 0);
+    transform: translate(2px, 0);
+  }
+  97.8% {
+    opacity: 0;
+  }
+}
+
+@keyframes glitch-slice-cathode {
+  0%,
+  96%,
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: translate(0, 0);
+  }
+  96.3% {
+    opacity: 0.75;
+    clip-path: inset(30% 0 40% 0);
+    transform: translate(3px, 0);
+  }
+  97.4% {
+    opacity: 0.75;
+    clip-path: inset(5% 0 70% 0);
+    transform: translate(-2px, 0);
+  }
+  97.9% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glitch::before,
+  .glitch::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Hide-UI mode — `H` (or the transport's HIDE UI button) toggles
+   `document.documentElement.dataset.ui = 'hidden'`. Hidden elements use
+   `visibility` rather than `display` so scroll/focus state survives the
+   toggle; the tunnel canvas and a compact timer readout stay visible. */
+:root[data-ui='hidden'] #banner,
+:root[data-ui='hidden'] #footer,
+:root[data-ui='hidden'] .app-title,
+:root[data-ui='hidden'] .app-layout,
+:root[data-ui='hidden'] .guide,
+:root[data-ui='hidden'] .toast {
+  visibility: hidden;
+}
+
+:root[data-ui='hidden'] #timer {
+  position: fixed;
+  inset: auto 0 20px 0;
+  display: flex;
+  justify-content: center;
+  z-index: 60;
+}
+
+:root[data-ui='hidden'] #timer .timer {
+  width: auto;
+}
+
+:root[data-ui='hidden'] #timer .timer > *:not(.timer__readout):not(.timer__phase) {
+  display: none;
+}
+
+.ui-hint {
+  position: fixed;
+  bottom: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  padding: 6px 12px;
+  border: 1px solid var(--graphite);
+  background: rgba(5, 5, 5, 0.85);
+  color: var(--cathode);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 1, 1);
+}
+
+.ui-hint.is-visible {
+  opacity: 1;
+  transition: opacity 0.25s cubic-bezier(0, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-hint {
+    transition: none;
+  }
+}

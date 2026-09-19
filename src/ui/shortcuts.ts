@@ -1,8 +1,9 @@
 import { store } from '../state/store';
 import { applyPreset } from '../state/presets';
 import type { AppState } from '../state/types';
-import { togglePlayback, PRESET_ORDER } from './transport';
+import { togglePlayback, PRESET_ORDER, toggleHideUi, showUi } from './transport';
 import { getSelectedLayerIndex } from './mixer';
+import { openGuide } from './guide';
 
 const STEP = 0.05;
 
@@ -63,6 +64,18 @@ function handleKeydown(event: KeyboardEvent): void {
     case 'Escape':
       // No dialog is owned by this module; other mount points (onboarding) listen for this.
       document.dispatchEvent(new CustomEvent('voidsong:escape'));
+      showUi();
+      break;
+
+    case 'h':
+    case 'H':
+      event.preventDefault();
+      toggleHideUi();
+      break;
+
+    case '?':
+      event.preventDefault();
+      openGuide();
       break;
 
     case '1':

@@ -5,6 +5,19 @@ import { bus } from '../state/events';
 import { startTimer, stopTimer, setWarmup, formatMMSS } from '../state/session';
 import { createSleepSelect } from './sleep';
 import { createBreakScreen, mountToast } from './ritual';
+import { openGuide } from './guide';
+
+function buildWinBar(title: string): HTMLDivElement {
+  const bar = document.createElement('div');
+  bar.className = 'win__bar';
+
+  const titleEl = document.createElement('span');
+  titleEl.className = 'win__title';
+  titleEl.textContent = title;
+  bar.appendChild(titleEl);
+
+  return bar;
+}
 
 const TIMER_PRESETS: TimerPreset[] = ['25/5', '50/10', '90/15'];
 
@@ -33,16 +46,16 @@ export function mountTimer(root?: HTMLElement): void {
   container.innerHTML = '';
 
   const panel = document.createElement('div');
-  panel.className = 'timer';
+  panel.className = 'win';
+  panel.appendChild(buildWinBar('Session'));
 
-  const eyebrow = document.createElement('p');
-  eyebrow.className = 'timer__eyebrow';
-  eyebrow.textContent = 'Session';
-  panel.appendChild(eyebrow);
+  const body = document.createElement('div');
+  body.className = 'win__body timer';
+  panel.appendChild(body);
 
   const presetsRow = document.createElement('div');
   presetsRow.className = 'timer__presets';
-  panel.appendChild(presetsRow);
+  body.appendChild(presetsRow);
 
   const presetButtons = new Map<TimerPreset | 'untimed', HTMLButtonElement>();
 
@@ -70,12 +83,12 @@ export function mountTimer(root?: HTMLElement): void {
   const readout = document.createElement('p');
   readout.className = 'timer__readout';
   readout.textContent = '--:--';
-  panel.appendChild(readout);
+  body.appendChild(readout);
 
   const phaseLabel = document.createElement('p');
   phaseLabel.className = 'timer__phase';
   phaseLabel.textContent = PHASE_LABEL.free;
-  panel.appendChild(phaseLabel);
+  body.appendChild(phaseLabel);
 
   const row = document.createElement('div');
   row.className = 'timer__row';
@@ -93,7 +106,21 @@ export function mountTimer(root?: HTMLElement): void {
   warmupWrap.appendChild(warmupText);
   row.appendChild(warmupWrap);
 
-  panel.appendChild(row);
+  body.appendChild(row);
+
+  const hintLine = document.createElement('p');
+  hintLine.className = 'timer__hint-line';
+  hintLine.textContent = '25/5 short sprints · 50/10 longer blocks · 90/15 one deep cycle';
+  const whyLink = document.createElement('button');
+  whyLink.type = 'button';
+  whyLink.className = 'timer__why';
+  whyLink.textContent = 'Why?';
+  whyLink.setAttribute('aria-label', 'Why these session lengths');
+  whyLink.addEventListener('click', () => openGuide());
+  hintLine.appendChild(document.createTextNode(' '));
+  hintLine.appendChild(whyLink);
+  body.appendChild(hintLine);
+
   container.appendChild(panel);
 
   const breakScreen = createBreakScreen();
