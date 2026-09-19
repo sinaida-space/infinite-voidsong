@@ -100,7 +100,7 @@ async function typeLine(container: HTMLElement, text: string, className?: string
 }
 
 export interface OnboardingOptions {
-  /** Reopen the welcome from the footer: Skip just closes, nothing is reset. */
+  /** Reopen the welcome from the footer: Skip just closes, nothing is reset. (A returning visitor gets the same Skip.) */
   replay?: boolean;
 }
 
@@ -109,10 +109,14 @@ export function showWelcome(): void {
   mountOnboarding(undefined, { replay: true });
 }
 
-/** Mounts the first-visit welcome and quiz overlay. No-ops once `onboarded` is already true, unless replaying. */
+/**
+ * Mounts the welcome and quiz overlay. It opens on every visit: browsers only
+ * allow sound after a tap, so the welcome doubles as the start screen. A
+ * returning visitor (mix already saved) can Skip to keep that mix untouched.
+ */
 export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions = {}): void {
-  if (store.get().onboarded && !options.replay) return;
   if (document.querySelector('.term')) return;
+  const returning = store.get().onboarded;
 
   const container = root ?? findRootOrCreate('onboarding');
   container.innerHTML = '';
@@ -184,7 +188,7 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
   }
 
   function skip(): void {
-    if (options.replay) {
+    if (options.replay || returning) {
       teardown();
       return;
     }

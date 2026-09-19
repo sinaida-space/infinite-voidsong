@@ -20,25 +20,17 @@ function buildWinBar(title: string): HTMLDivElement {
 // `H` (bound in shortcuts.ts) and the transport's HIDE UI button both call
 // toggleHideUi(). State lives on `documentElement.dataset.ui` so base.css's
 // `[data-ui='hidden']` rules can hide everything but the tunnel and the
-// compact timer readout; it's mirrored to localStorage as a per-viewer
-// convenience only (never a source of truth other viewers see).
+// compact timer readout.
 
-const UI_HIDDEN_KEY = 'voidsong:ui-hidden';
+// Not remembered between visits: every visit opens with the interface shown.
+// An older version saved this choice; that leftover key is removed on load.
+const LEGACY_UI_HIDDEN_KEY = 'voidsong:ui-hidden';
 
-function readStoredHidden(): boolean {
+function forgetLegacyHiddenChoice(): void {
   try {
-    return localStorage.getItem(UI_HIDDEN_KEY) === '1';
+    localStorage.removeItem(LEGACY_UI_HIDDEN_KEY);
   } catch {
-    return false;
-  }
-}
-
-function writeStoredHidden(hidden: boolean): void {
-  try {
-    if (hidden) localStorage.setItem(UI_HIDDEN_KEY, '1');
-    else localStorage.removeItem(UI_HIDDEN_KEY);
-  } catch {
-    /* per-viewer convenience only */
+    /* storage may be blocked */
   }
 }
 
@@ -62,7 +54,6 @@ function announceUiState(hidden: boolean): void {
 function applyUiHidden(hidden: boolean, announceHint: boolean): void {
   if (hidden) document.documentElement.dataset.ui = 'hidden';
   else delete document.documentElement.dataset.ui;
-  writeStoredHidden(hidden);
   announceUiState(hidden);
   if (hidden && announceHint) flashHideHint();
 }
@@ -133,7 +124,8 @@ function render(state: AppState): void {
 export function mountTransport(root: HTMLElement): void {
   root.className = 'transport-stack';
 
-  applyUiHidden(readStoredHidden(), false);
+  forgetLegacyHiddenChoice();
+  applyUiHidden(false, false);
 
   // --- Player window --------------------------------------------------
   const transportWin = document.createElement('div');
