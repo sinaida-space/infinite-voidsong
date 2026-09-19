@@ -94,6 +94,11 @@ export class TunnelRenderer {
     this.requestFrame();
   }
 
+  /** False when WebGL2 or the shader is unavailable: the page then keeps a dark ground instead of the red one. */
+  get available(): boolean {
+    return this.gl !== null && this.program !== null;
+  }
+
   /** Steer the view, x and y in -1..1 (mouse position or phone tilt). Ignored under reduced motion. */
   setLook(x: number, y: number): void {
     if (this.reactive.reducedMotion) {

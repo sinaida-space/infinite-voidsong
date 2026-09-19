@@ -15,7 +15,11 @@ body {
   min-height: 100vh;
   font-family: var(--font-ui), 'Courier New', monospace;
   color: var(--chalk);
-  background: var(--void);
+  /* Brand red, not Void: Safari 26 tints its toolbars from the body background.
+     The tunnel canvas is fixed and opaque, so the red is only ever seen at the
+     edges (rubber-band scrolling) and in the toolbars. Without WebGL the
+     ground stays dark (see data-gl below). */
+  background: var(--red);
   display: grid;
   grid-template-areas:
     'banner'
@@ -33,6 +37,10 @@ body {
       'footer footer';
     grid-template-columns: 1fr 320px;
   }
+}
+
+html[data-gl='off'] body {
+  background: var(--void);
 }
 
 #tunnel {
