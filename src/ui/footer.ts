@@ -4,6 +4,8 @@
 // More) over quieter body text and links. `__APP_VERSION__` and
 // `__BUILD_MONTH__` are injected at build time (see vite.config.ts).
 
+import './scroll'; // every page opens at the top
+
 declare const __APP_VERSION__: string;
 declare const __BUILD_MONTH__: string;
 

@@ -69,7 +69,7 @@ export function openGuide(): void {
   lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   winEl.hidden = false;
   winEl.setAttribute('aria-hidden', 'false');
-  (closeBtn ?? winEl).focus();
+  (closeBtn ?? winEl).focus({ preventScroll: true });
 }
 
 /** Closes the guide window and returns focus to whatever opened it. */

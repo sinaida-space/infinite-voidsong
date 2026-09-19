@@ -79,7 +79,7 @@ export function mountTimer(root?: HTMLElement): void {
         // Opens the two number fields; the session starts from their Start button.
         customOpen = true;
         render();
-        customWorkInput.focus();
+        customWorkInput.focus({ preventScroll: true });
       } else {
         customOpen = false;
         startTimer(preset);
