@@ -21,6 +21,7 @@ import { buildGraph, type MasterGraph } from './graph';
 import { Layer } from './layer';
 import { LevelMeter } from './levels';
 import { onBeat } from './music/register';
+import { setHarmonyMode } from './music/harmony';
 import { SOURCES } from './sources';
 import { loadNoiseWorklet } from './worklets/load';
 
@@ -92,6 +93,7 @@ export class AudioEngine {
     const now = this.ctx.currentTime;
     const prev = this.last;
 
+    setHarmonyMode(state.harmony);   // before the layers, so a source created below already sees it
     state.layers.forEach((next, i) => this.applyLayer(this.layers[i], prev?.layers[i] ?? null, next, now));
     state.layers.forEach((next, i) => this.applyFocusBoost(this.focusBoosts[i], prev, state, next, i));
 
