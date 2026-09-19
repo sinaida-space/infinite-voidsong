@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 FONT_TTF = ROOT / "scripts" / "fonts" / "GeistPixel-Regular.ttf"   # Geist Pixel, SIL Open Font License
-SOURCE = ROOT / "404_images" / "slopter_6.png"
+SOURCE = ROOT / "404_images" / "slopter_44.png"
 OUT = ROOT / "public" / "og.png"
 
 VOID = (5, 5, 5)
@@ -64,7 +64,7 @@ def main() -> None:
     scale = max(tw / src.width, th / src.height)
     resized = src.resize((round(src.width * scale), round(src.height * scale)), Image.Resampling.LANCZOS)
     left = (resized.width - tw) // 2
-    top = int((resized.height - th) * 0.12)
+    top = int((resized.height - th) * 0.55)
     crop = resized.crop((left, top, left + tw, top + th))
     panel = dither(crop).resize((panel_w, panel_h), Image.Resampling.NEAREST)
     canvas.paste(panel.convert("RGBA"), (PANEL_X, 0))
