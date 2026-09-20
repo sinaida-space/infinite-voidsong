@@ -21,6 +21,7 @@ import { buildGraph, type MasterGraph } from './graph';
 import { Layer } from './layer';
 import { LevelMeter } from './levels';
 import { onBeat } from './music/register';
+import { setHarmonyMode } from './music/harmony';
 import { SOURCES } from './sources';
 import { loadNoiseWorklet } from './worklets/load';
 
@@ -55,7 +56,7 @@ export class AudioEngine {
     this.ctx = new AudioContext({ latencyHint: 'playback' });
     this.graph = buildGraph(this.ctx);
     this.focusBoosts = [0, 1, 2, 3].map(() => focusBoostNode(this.ctx));
-    this.layers = [0, 1, 2, 3].map((i) => new Layer(this.ctx, this.focusBoosts[i].input));
+    this.layers = [0, 1, 2, 3].map((i) => new Layer(this.ctx, this.focusBoosts[i].input, i));
     this.focusBoosts.forEach((fb) => fb.output.connect(this.graph.input));
     this.meter = new LevelMeter(this.ctx, this.graph.analyser, this.bus);
     // Lofi kicks (music/beat.ts) feed the level meter so LevelFrame.beat is non-zero on the beat.
@@ -92,6 +93,7 @@ export class AudioEngine {
     const now = this.ctx.currentTime;
     const prev = this.last;
 
+    setHarmonyMode(state.harmony);   // before the layers, so a source created below already sees it
     state.layers.forEach((next, i) => this.applyLayer(this.layers[i], prev?.layers[i] ?? null, next, now));
     state.layers.forEach((next, i) => this.applyFocusBoost(this.focusBoosts[i], prev, state, next, i));
 

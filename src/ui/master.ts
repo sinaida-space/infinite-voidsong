@@ -1,6 +1,14 @@
 import { store } from '../state/store';
-import type { AppState } from '../state/types';
-import { bandOf } from '../state/types';
+import type { AppState, HarmonyMode } from '../state/types';
+import { bandOf, HARMONY_MODES } from '../state/types';
+
+const NBSP = '\u00a0';
+const HARMONY_LABEL: Record<HarmonyMode, string> = { off: 'Off', gentle: 'Gentle', drift: 'Drift' };
+const HARMONY_HINT: Record<HarmonyMode, string> = {
+  off: `The music keeps its four-chord loop and one-bar patterns.`,
+  gentle: `A${NBSP}new chord progression each cycle, patterns of${NBSP}two${NBSP}bars.`,
+  drift: `As${NBSP}Gentle, with four-bar patterns and a${NBSP}key that${NBSP}wanders and returns.`,
+};
 
 const BAND_LABEL: Record<string, string> = {
   whisper: 'Whisper',
@@ -38,6 +46,8 @@ interface Refs {
   boostValue: HTMLSpanElement;
   rateInput: HTMLInputElement;
   rateValue: HTMLSpanElement;
+  harmonyButtons: Map<HarmonyMode, HTMLButtonElement>;
+  harmonyHint: HTMLParagraphElement;
 }
 
 let refs: Refs | null = null;
@@ -45,7 +55,7 @@ let lastKey = '';
 
 function render(state: AppState): void {
   if (!refs) return;
-  const key = `${state.master.volume}|${state.focusBoost.depth}|${state.focusBoost.rateHz}`;
+  const key = `${state.master.volume}|${state.focusBoost.depth}|${state.focusBoost.rateHz}|${state.harmony}`;
   if (key === lastKey) return;
   lastKey = key;
 
@@ -70,6 +80,9 @@ function render(state: AppState): void {
   }
   setRangeFill(refs.rateInput);
   refs.rateValue.textContent = `${Math.round(state.focusBoost.rateHz)} Hz`;
+
+  for (const [mode, btn] of refs.harmonyButtons) btn.setAttribute('aria-pressed', String(mode === state.harmony));
+  refs.harmonyHint.textContent = HARMONY_HINT[state.harmony];
 }
 
 export function mountMaster(root: HTMLElement): void {
@@ -159,6 +172,37 @@ export function mountMaster(root: HTMLElement): void {
   hint.textContent = 'May help some people sustain attention. Early evidence: if it distracts you, set it to 0.';
   body.appendChild(hint);
 
+  // Harmony: a three-position switch for the music layers.
+  const harmonyLabelRow = document.createElement('div');
+  harmonyLabelRow.className = 'control-row__label';
+  harmonyLabelRow.style.marginTop = '8px';
+  const harmonyLabel = document.createElement('span');
+  harmonyLabel.id = 'harmony-label';
+  harmonyLabel.textContent = 'Harmony';
+  harmonyLabelRow.appendChild(harmonyLabel);
+  body.appendChild(harmonyLabelRow);
+
+  const harmonyGroup = document.createElement('div');
+  harmonyGroup.className = 'seg';
+  harmonyGroup.setAttribute('role', 'group');
+  harmonyGroup.setAttribute('aria-labelledby', 'harmony-label');
+  const harmonyButtons = new Map<HarmonyMode, HTMLButtonElement>();
+  for (const mode of HARMONY_MODES) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'seg__btn';
+    btn.textContent = HARMONY_LABEL[mode];
+    btn.addEventListener('click', () => store.set((s: AppState) => ({ ...s, harmony: mode })));
+    harmonyButtons.set(mode, btn);
+    harmonyGroup.appendChild(btn);
+  }
+  body.appendChild(harmonyGroup);
+
+  const harmonyHint = document.createElement('p');
+  harmonyHint.className = 'hint';
+  harmonyHint.setAttribute('aria-live', 'polite');
+  body.appendChild(harmonyHint);
+
   masterInput.addEventListener('input', () => {
     setRangeFill(masterInput);
     const v = Number(masterInput.value);
@@ -183,7 +227,7 @@ export function mountMaster(root: HTMLElement): void {
     store.set((s: AppState) => ({ ...s, focusBoost: { ...s.focusBoost, rateHz: hz } }));
   });
 
-  refs = { masterInput, masterValue, bandLabel, boostInput, boostValue, rateInput, rateValue };
+  refs = { masterInput, masterValue, bandLabel, boostInput, boostValue, rateInput, rateValue, harmonyButtons, harmonyHint };
 
   store.subscribe(render);
   render(store.get());

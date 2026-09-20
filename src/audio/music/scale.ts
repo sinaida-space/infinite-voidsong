@@ -40,13 +40,37 @@ export function degreeToMidi(degree: number, steps: readonly number[] = sessionS
   const idx = ((degree % n) + n) % n;
   return sessionScale.root + octave * 12 + steps[idx];
 }
-export const degreeToHz = (degree: number, steps?: readonly number[]): number => midiToHz(degreeToMidi(degree, steps));
+export const degreeToHz = (degree: number, steps?: readonly number[], rootShift = 0): number =>
+  midiToHz(degreeToMidi(degree, steps) + foldShift(rootShift));
 
-// ii–V–I–vi as scale-degree roots (0-based), each voiced as a 7th chord: stacked thirds.
-export type Roman = 'ii' | 'V' | 'I' | 'vi';
-export const PROGRESSION: readonly Roman[] = ['ii', 'V', 'I', 'vi'];
-const ROMAN_ROOT: Record<Roman, number> = { ii: 1, V: 4, I: 0, vi: 5 };
+// A key change of +7 (up a fifth) or -7 (a fourth up in the other direction) is
+// folded upward into 0..11 semitones so the bass register never drops: +7 stays
+// +7, -7 becomes +5. With the home root at A-flat..C (56..60) the sounding root
+// therefore stays within 56..67.
+export const foldShift = (semitones: number): number => ((Math.round(semitones) % 12) + 12) % 12;
+
+// Chords as scale-degree roots (0-based), each voiced as a 7th chord: stacked thirds.
+export type Roman = 'I' | 'ii' | 'iii' | 'IV' | 'V' | 'vi' | 'vii°';
+const ROMAN_ROOT: Record<Roman, number> = { I: 0, ii: 1, iii: 2, IV: 3, V: 4, vi: 5, 'vii°': 6 };
+export const romanRoot = (roman: Roman): number => ROMAN_ROOT[roman];
 export function chordDegrees(roman: Roman): number[] {
   const r = ROMAN_ROOT[roman];
   return [r, r + 2, r + 4, r + 6];
 }
+
+// Harmony Off: ii–V–I–vi, the loop every source has always played.
+export const PROGRESSION: readonly Roman[] = ['ii', 'V', 'I', 'vi'];
+
+// Harmony Gentle and Drift: circle-of-fifths chains. Each root sits a fourth
+// above the previous one (scale degree + 3), which is the same as a fifth down,
+// so every step resolves the way ii–V–I does. All chords are diatonic to the
+// session mode because they are stacked from its own steps.
+export const PROGRESSION_POOL: readonly (readonly Roman[])[] = [
+  ['iii', 'vi', 'ii', 'V', 'I'],
+  ['vi', 'ii', 'V', 'I', 'IV'],
+  ['I', 'IV', 'vii°', 'iii', 'vi', 'ii', 'V', 'I'],
+  ['ii', 'V', 'I', 'IV'],
+  ['IV', 'vii°', 'iii', 'vi', 'ii', 'V', 'I'],
+  ['vii°', 'iii', 'vi', 'ii', 'V', 'I'],
+  ['V', 'I', 'IV', 'vii°', 'iii', 'vi'],
+];

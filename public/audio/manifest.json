@@ -1,0 +1,118 @@
+{
+  "files": [
+    {
+      "id": "stream",
+      "file": "stream.opus",
+      "durationSec": 56.01,
+      "bytes": 464429,
+      "title": "Small Stream",
+      "author": "Joseph SARDIN",
+      "sourceUrl": "https://bigsoundbank.com/small-stream-s0823.html",
+      "license": "CC0 1.0",
+      "licenseLine": "CC0 (public domain): Free and royalty-free",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "processing": [
+        "trim 60 s from 5 s",
+        "highpass 60 Hz",
+        "loudnorm -20 LUFS",
+        "crossfade 4 s loop seam (equal power)",
+        "opus 72 kbps stereo"
+      ]
+    },
+    {
+      "id": "rain",
+      "file": "rain.opus",
+      "durationSec": 56.01,
+      "bytes": 431837,
+      "title": "Summer Rain on Terrace",
+      "author": "Joseph SARDIN",
+      "sourceUrl": "https://bigsoundbank.com/sound-1019-summer-rain-on-terrace.html",
+      "license": "CC0 1.0",
+      "licenseLine": "CC0 (public domain): Free and royalty-free",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "processing": [
+        "trim 60 s from 96 s",
+        "highpass 60 Hz",
+        "loudnorm -20 LUFS",
+        "crossfade 4 s loop seam (equal power)",
+        "opus 72 kbps stereo"
+      ]
+    },
+    {
+      "id": "thunder",
+      "file": "thunder.opus",
+      "durationSec": 56.01,
+      "bytes": 469882,
+      "title": "Rain and Thunder #2",
+      "author": "Joseph SARDIN",
+      "sourceUrl": "https://bigsoundbank.com/rain-and-storm-2-s0740.html",
+      "license": "CC0 1.0",
+      "licenseLine": "CC0 (public domain): Free and royalty-free",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "processing": [
+        "trim 60 s from 50 s",
+        "highpass 60 Hz",
+        "loudnorm -20 LUFS",
+        "crossfade 4 s loop seam (equal power)",
+        "opus 72 kbps stereo"
+      ]
+    },
+    {
+      "id": "birds",
+      "file": "birds.opus",
+      "durationSec": 56.01,
+      "bytes": 386604,
+      "title": "Birds Waking #3",
+      "author": "Joseph SARDIN",
+      "sourceUrl": "https://bigsoundbank.com/detail-0999-wake-birds-3.html",
+      "license": "CC0 1.0",
+      "licenseLine": "CC0 (public domain): Free and royalty-free",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "processing": [
+        "trim 60 s from 185 s",
+        "highpass 60 Hz",
+        "loudnorm -20 LUFS",
+        "crossfade 4 s loop seam (equal power)",
+        "opus 72 kbps stereo"
+      ]
+    },
+    {
+      "id": "crickets",
+      "file": "crickets.opus",
+      "durationSec": 56.01,
+      "bytes": 794933,
+      "title": "Campaign at Night #4",
+      "author": "Joseph SARDIN",
+      "sourceUrl": "https://bigsoundbank.com/campaign-at-night-4-s1880.html",
+      "license": "CC0 1.0",
+      "licenseLine": "CC0 (public domain): Free and royalty-free",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "processing": [
+        "trim 60 s from 100 s",
+        "highpass 60 Hz",
+        "loudnorm -20 LUFS",
+        "crossfade 4 s loop seam (equal power)",
+        "opus 72 kbps stereo"
+      ]
+    },
+    {
+      "id": "wind",
+      "file": "wind.opus",
+      "durationSec": 56.01,
+      "bytes": 435966,
+      "title": "Wind in the Trees",
+      "author": "Joseph SARDIN",
+      "sourceUrl": "https://bigsoundbank.com/forest-wind-in-the-trees-s0904.html",
+      "license": "CC0 1.0",
+      "licenseLine": "CC0 (public domain): Free and royalty-free",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "processing": [
+        "trim 60 s from 45 s",
+        "highpass 60 Hz",
+        "loudnorm -20 LUFS",
+        "crossfade 4 s loop seam (equal power)",
+        "opus 72 kbps stereo"
+      ]
+    }
+  ]
+}

@@ -21,7 +21,7 @@
   <main id="main" class="page">
     <nav class="page__nav"><a href="/">← Infinite Voidsong</a></nav>
     <h1>Research and sources</h1>
-    <p class="page__meta">Last updated 2026-09-19</p>
+    <p class="page__meta">Last updated 2026-09-20</p>
 
     <p>
       Infinite Voidsong is built on a small body of published research about
@@ -188,6 +188,92 @@
         (2019). Global standard for safe listening devices and systems.
       </li>
     </ul>
+
+    <h2>Where the sounds come from</h2>
+    <p>
+      Every sound in Infinite Voidsong is either generated in&nbsp;your
+      browser while it plays, or it&nbsp;is a&nbsp;short field recording
+      that ships with the site. Nothing is streamed from another server and
+      nothing is tracked. Recordings are loaded the first time you switch a
+      layer on, then kept in&nbsp;your browser.
+    </p>
+
+    <h2>Generated sounds</h2>
+    <p>
+      These are computed live with the Web Audio API. They use no samples and
+      no third-party audio.
+    </p>
+    <ul>
+      <li>Noise (white, pink, brown), fan, campfire, ocean, underwater.</li>
+      <li>Places: caf&eacute;, library, cabin (murmur, room tone and small events).</li>
+      <li>
+        All music: drone, lofi, plucks, synthwave, berlin, house, chillhop and
+        the tone layer, plus the Harmony setting that chooses chords and
+        keys. Chord movement follows the circle of fifths inside one key.
+      </li>
+      <li>The Focus Boost pulsing, the session chimes and the work and break signals.</li>
+      <li>
+        A generated stand-in for every recording below. It plays when a
+        recording cannot load, when your browser asks to save data, or
+        for the first seconds while a recording downloads.
+      </li>
+    </ul>
+
+    <h2>Recorded sounds</h2>
+    <p>
+      Six field recordings by Joseph SARDIN, downloaded from
+      <a href="https://bigsoundbank.com" rel="noopener noreferrer" target="_blank">BigSoundBank</a>.
+      Each one is published there under CC0, a public-domain dedication. CC0
+      does not require credit, and we credit the author anyway. Licence text:
+      <a href="https://creativecommons.org/publicdomain/zero/1.0/" rel="noopener noreferrer" target="_blank">CC0 1.0</a>.
+    </p>
+    <ul>
+      <li>
+        Stream layer: <a href="https://bigsoundbank.com/small-stream-s0823.html" rel="noopener noreferrer" target="_blank">Small Stream</a>,
+        from second&nbsp;5 of the original.
+      </li>
+      <li>
+        Rain layer: <a href="https://bigsoundbank.com/sound-1019-summer-rain-on-terrace.html" rel="noopener noreferrer" target="_blank">Summer Rain on Terrace</a>,
+        from second&nbsp;96.
+      </li>
+      <li>
+        Rain and thunder layer: <a href="https://bigsoundbank.com/rain-and-storm-2-s0740.html" rel="noopener noreferrer" target="_blank">Rain and Thunder #2</a>,
+        from second&nbsp;50, chosen to skip the loudest crack.
+      </li>
+      <li>
+        Birds layer: <a href="https://bigsoundbank.com/detail-0999-wake-birds-3.html" rel="noopener noreferrer" target="_blank">Birds Waking #3</a>,
+        from second&nbsp;185.
+      </li>
+      <li>
+        Crickets layer: <a href="https://bigsoundbank.com/campaign-at-night-4-s1880.html" rel="noopener noreferrer" target="_blank">Campaign at Night #4</a>,
+        from second&nbsp;100.
+      </li>
+      <li>
+        Wind layer: <a href="https://bigsoundbank.com/forest-wind-in-the-trees-s0904.html" rel="noopener noreferrer" target="_blank">Wind in the Trees</a>,
+        from second&nbsp;45, chosen to skip a gust.
+      </li>
+    </ul>
+
+    <h2>What was done to the recordings</h2>
+    <p>
+      The site offers its files as MP3 only, so the source is already
+      compressed. Every recording went through the same steps with
+      <em>ffmpeg</em>:
+    </p>
+    <ul>
+      <li>A 60-second window cut from the original.</li>
+      <li>A 60&nbsp;Hz high-pass filter to remove rumble.</li>
+      <li>Loudness normalised to about &minus;20&nbsp;LUFS in a single pass, so levels land between &minus;19 and &minus;22&nbsp;LUFS.</li>
+      <li>The last 4 seconds cross-faded into the first 4 with an equal-power curve, so the file loops without a seam. The result is 56 seconds long.</li>
+      <li>Encoded as Opus at 72&nbsp;kbps stereo. All six files together weigh about 3&nbsp;MB.</li>
+    </ul>
+    <p>
+      In the browser each recording plays as two overlapping copies that
+      cross-fade over 3 seconds. Every pass starts at a random point, so the
+      loop does not repeat the same way twice. A per-layer gain trim brings
+      it to the level of the generated layers. No other effects are added.
+      Nothing was time-stretched, pitched or mixed with another recording.
+    </p>
 
     <h2>A note on these references</h2>
     <p>

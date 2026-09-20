@@ -15,7 +15,8 @@ export interface SoundSource {
   setParam(key: string, value: number, rampSec: number): void;
   dispose(): void;
 }
-export type SourceFactory = (ctx: AudioContext) => SoundSource;
+/** `layerIndex` (0-3) lets a source vary itself per mixer slot; most recipes ignore it. */
+export type SourceFactory = (ctx: AudioContext, layerIndex?: number) => SoundSource;
 
 const START_FADE = 0.5;   // the layer crossfade (3 s) does the musical work; this only kills the edge
 const STOP_FADE = 2;

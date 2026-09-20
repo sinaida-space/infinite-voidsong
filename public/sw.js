@@ -7,6 +7,9 @@
 
 const CACHE_PREFIX = 'voidsong-';
 let CACHE_NAME = CACHE_PREFIX + 'v0';
+// Recorded audio loops: cached at runtime on first play, never precached, and kept
+// across version bumps (the recordings do not change with the app build).
+const AUDIO_CACHE = CACHE_PREFIX + 'audio-v1';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -35,7 +38,7 @@ self.addEventListener('activate', (event) => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+          .filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME && key !== AUDIO_CACHE)
           .map((key) => caches.delete(key)),
       );
       await self.clients.claim();
@@ -45,6 +48,10 @@ self.addEventListener('activate', (event) => {
 
 function isFontRequest(request) {
   return request.destination === 'font' || /\.woff2?$/.test(new URL(request.url).pathname);
+}
+
+function isAudioRequest(request) {
+  return new URL(request.url).pathname.startsWith('/audio/');
 }
 
 function isHtmlRequest(request) {
@@ -63,12 +70,15 @@ async function networkFirst(request) {
   }
 }
 
-async function cacheFirst(request) {
-  const cache = await caches.open(CACHE_NAME);
+async function cacheFirst(request, cacheName = CACHE_NAME, event) {
+  const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  if (response.ok) cache.put(request, response.clone());
+  if (response.ok) {
+    const put = cache.put(request, response.clone());
+    if (event) event.waitUntil(put); else put.catch(() => {});
+  }
   return response;
 }
 
@@ -82,8 +92,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  if (isAudioRequest(request)) {
+    event.respondWith(cacheFirst(request, AUDIO_CACHE, event));
+    return;
+  }
+
   if (isFontRequest(request)) {
-    event.respondWith(cacheFirst(request));
+    event.respondWith(cacheFirst(request, CACHE_NAME, event));
     return;
   }
 });

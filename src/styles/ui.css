@@ -220,8 +220,8 @@
 }
 
 .mute-btn[aria-pressed='true'] {
-  border-color: var(--chalk);
-  background: var(--chalk);
+  border-color: var(--slate);
+  background: var(--slate);
   color: var(--void);
 }
 
@@ -270,6 +270,39 @@
   font-size: 0.72rem;
   color: var(--slate);
   margin-top: 4px;
+}
+
+.seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 4px;
+}
+
+.seg__btn {
+  border: 1px solid var(--gunmetal);
+  margin-left: -1px;
+  padding: 8px 6px;
+  background: transparent;
+  color: var(--chalk);
+  font-family: inherit;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+.seg__btn:first-child { margin-left: 0; }
+
+.seg__btn:hover,
+.seg__btn:focus-visible {
+  border-color: var(--red);
+  outline: none;
+}
+
+.seg__btn[aria-pressed='true'] {
+  position: relative;
+  border-color: var(--red);
+  color: var(--red-text);
 }
 
 .master-panel {
