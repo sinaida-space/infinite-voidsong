@@ -23,6 +23,8 @@ if (on) {
   set('screen', `${innerWidth}x${innerHeight} dpr${devicePixelRatio}`);
   window.addEventListener('error', (e) => add('ERR ' + e.message));
   window.addEventListener('unhandledrejection', (e) => add('REJ ' + String((e.reason && e.reason.message) || e.reason)));
+  const warn = console.warn.bind(console);
+  console.warn = (...a: unknown[]) => { add('WARN ' + a.join(' ')); warn(...a); };
   document.addEventListener('visibilitychange', () => add('vis ' + document.visibilityState));
 
   // Audio: track every AudioContext.
