@@ -11,7 +11,9 @@ import { makeSidechain } from '../music/sidechain';
 import { makeChorus } from '../music/chorus';
 import { gridLane, pickDifferent } from '../music/grid';
 import { gatedSnare, hat, kick, cleanupOnEnd } from '../music/hits';
-import { degreeToHz } from '../music/scale';
+import { chordDegrees, degreeToHz } from '../music/scale';
+import { makeHarmonyCursor } from '../music/harmony';
+import { linePhrase } from '../music/phrase';
 import { emitBeat } from '../music/beat';
 import { clamp, dbToGain, rand } from '../music/util';
 
@@ -22,7 +24,8 @@ const EXTRA_KICK_CHANCE = 0.2;     // a pickup kick on the "and of 4" now and th
 const HAT_DB = -18;
 const PAD_DB = -16;                // per oscillator; nine of them sum to a bed, not a lead
 
-// Chord cycle i–VI–III–VII as scale-degree roots; each chord is a triad
+// Chord cycle i–VI–III–VII as scale-degree roots (Harmony Off; Gentle and Drift take
+// their chords from nextHarmony instead); each chord is a triad
 // stacked in thirds from the session scale, so it is minor in Dorian and
 // major-leaning in Lydian without a separate table.
 const CYCLE: { roman: string; root: number }[] = [
@@ -143,6 +146,8 @@ export const synthwave: SourceFactory = (ctx: AudioContext): SequencedSource => 
   // Sequencer state.
   let lastArp = -1;
   let arp: Arp = ARPS[0];
+  let phrase: Arp[] = [];             // Harmony Gentle / Drift: the bars of the current phrase (one bar when Off)
+  const harmony = makeHarmonyCursor(CHORD_EVERY_BARS);
   let hats = '';
   let extraKick = false;
   let chordIndex = -1;
@@ -152,20 +157,32 @@ export const synthwave: SourceFactory = (ctx: AudioContext): SequencedSource => 
 
   const beginBar = (t: number, bar: number, bpm: number): void => {
     barBpm = bpm;
-    lastArp = pickDifferent(ARPS.length, lastArp);
-    arp = ARPS[lastArp];
+    const h = harmony(bar, t, (60 / bpm) * 4);
+    // A new arp each bar (Off), each two bars (Gentle) or each four bars (Drift); never the same twice in a row.
+    if (h.phraseBar === 0) {
+      lastArp = pickDifferent(ARPS.length, lastArp);
+      phrase = linePhrase(ARPS[lastArp], h.phraseBars);
+    }
+    arp = phrase[h.phraseBar];
     // Hats on every 8th; each bar drops one or two at random so the ride breathes.
     hats = 'x.x.x.x.x.x.x.x.'.split('').map((c) => (c === 'x' && Math.random() < 0.1 ? '.' : c)).join('');
     extraKick = Math.random() < EXTRA_KICK_CHANCE;
 
     let chord: string | null = null;
     if (bar % CHORD_EVERY_BARS === 0) {
-      chordIndex = (chordIndex + 1) % CYCLE.length;
-      const c = CYCLE[chordIndex];
-      chord = c.roman;
-      chordRootHz = degreeToHz(c.root - 7);
+      let root: number;
+      if (h.mode === 'off') {
+        chordIndex = (chordIndex + 1) % CYCLE.length;
+        const c = CYCLE[chordIndex];
+        chord = c.roman;
+        root = c.root;
+      } else {
+        chord = h.roman;
+        root = chordDegrees(h.roman!)[0];
+      }
+      chordRootHz = degreeToHz(root - 7, undefined, h.rootShift);
       padRelease(t, PAD_XFADE_SEC);
-      for (const d of [c.root, c.root + 2, c.root + 4]) padOn(t, degreeToHz(d));
+      for (const d of [root, root + 2, root + 4]) padOn(t, degreeToHz(d, undefined, h.rootShift));
     }
     const signature = `${arp.map((v) => (v === null ? '.' : v)).join(',')}|${hats}|${extraKick ? 'k' : '-'}`;
     source.onBar?.({ bar, time: t, bpm, pattern: lastArp, chord, signature } satisfies BarInfo);

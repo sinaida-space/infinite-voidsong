@@ -1,4 +1,5 @@
 import type { AppState, LayerState } from './types';
+import { isHarmonyMode } from './types';
 import { bus } from './events';
 import { loadPersisted, savePersisted } from './persist';
 import { readHashState, writeHashState } from './url';
@@ -15,6 +16,7 @@ function defaultState(): AppState {
     master: { volume: 0.5 },
     focusBoost: { depth: 0, rateHz: 16 },
     preset: null,
+    harmony: 'gentle',
     session: { timer: null, customWork: 40, customBreak: 8, phase: 'free', phaseEndsAt: null, warmup: false, sleepEndsAt: null },
     onboarded: false,
     noticeDismissed: false,
@@ -42,6 +44,8 @@ function buildInitialState(): AppState {
       ...state,
       ...persisted,
       playback: 'idle',
+      // Saved state from before Harmony existed keeps the music it always had.
+      harmony: isHarmonyMode(persisted.harmony) ? persisted.harmony : 'off',
       session: { ...state.session, ...persisted.session, phaseEndsAt: null },
     };
   }
@@ -55,6 +59,8 @@ function buildInitialState(): AppState {
       master: fromHash.master,
       focusBoost: fromHash.focusBoost,
       preset: fromHash.preset,
+      // A link made before Harmony existed carries no field: it loads as 'off'.
+      harmony: isHarmonyMode(fromHash.harmony) ? fromHash.harmony : 'off',
     };
   }
 
@@ -86,6 +92,7 @@ function createStore() {
       master: state.master,
       focusBoost: state.focusBoost,
       preset: state.preset,
+      harmony: state.harmony,
     });
   }
 

@@ -11,7 +11,9 @@ import { makeTape } from '../music/tape';
 import { makeSidechain } from '../music/sidechain';
 import { gridLane, pickDifferent, STEPS } from '../music/grid';
 import { clap, hat, kick, cleanupOnEnd } from '../music/hits';
-import { chordDegrees, degreeToHz, PROGRESSION } from '../music/scale';
+import { chordDegrees, degreeToHz } from '../music/scale';
+import { makeHarmonyCursor } from '../music/harmony';
+import { varyCells } from '../music/phrase';
 import { emitBeat } from '../music/beat';
 import { clamp, dbToGain, rand, rampHz } from '../music/util';
 
@@ -98,33 +100,46 @@ export const house: SourceFactory = (ctx: AudioContext): SequencedSource => {
   // Sequencer state.
   let lastPattern = -1;
   let pattern = STAB_POOL[0];
-  let half = 0;                         // which bar of the 2-bar pattern
+  let half = 0;                         // which bar of the 2-bar pattern (Harmony Off)
+  let stabBar = '';                     // the stab pattern of the current bar, 16 steps
+  let phrase: string[] = [];            // Harmony Gentle / Drift: the stab bars of the current phrase
+  const harmony = makeHarmonyCursor(CHORD_EVERY_BARS);
   let hatDrops = '';                    // per-bar open-hat humanising
   let extraKick = false;
-  let chordIndex = -1;
   let stabHz: number[] = [];
   let subHz = 55;
   let started = false;
 
   const beginBar = (t: number, bar: number, bpm: number): void => {
-    if (bar % 2 === 0) { lastPattern = pickDifferent(STAB_POOL.length, lastPattern); pattern = STAB_POOL[lastPattern]; }
-    half = bar % 2;
+    const h = harmony(bar, t, (60 / bpm) * 4);
+    if (h.mode === 'off') {
+      if (bar % 2 === 0) { lastPattern = pickDifferent(STAB_POOL.length, lastPattern); pattern = STAB_POOL[lastPattern]; }
+      half = bar % 2;
+      stabBar = pattern.slice(half * STEPS, half * STEPS + STEPS);
+    } else {
+      // Gentle: the two bars of a pool pattern. Drift: four bars, A A' A B with B the second bar pushed further.
+      if (h.phraseBar === 0) {
+        lastPattern = pickDifferent(STAB_POOL.length, lastPattern);
+        pattern = STAB_POOL[lastPattern];
+        const a = pattern.slice(0, STEPS), b = pattern.slice(STEPS);
+        const vary = (bar16: string, ops: number): string => varyCells(bar16.split(''), (c) => c === 'x', ops).join('');
+        phrase = h.phraseBars === 2 ? [a, b] : [a, b, a, vary(b, 3)];
+      }
+      stabBar = phrase[h.phraseBar];
+    }
     hatDrops = '..x...x...x...x.'.split('').map((c) => (c === 'x' && Math.random() < 0.08 ? '.' : c)).join('');
     extraKick = Math.random() < EXTRA_KICK_CHANCE;
 
     let chord: string | null = null;
-    if (bar % CHORD_EVERY_BARS === 0) {
-      chordIndex = (chordIndex + 1) % PROGRESSION.length;
-      const roman = PROGRESSION[chordIndex];
-      chord = roman;
-      const degrees = chordDegrees(roman);
-      stabHz = degrees.map((d) => degreeToHz(d));
+    if (h.roman) {
+      chord = h.roman;
+      const degrees = chordDegrees(h.roman);
+      stabHz = degrees.map((d) => degreeToHz(d, undefined, h.rootShift));
       // Two octaves under the chord root; anything below 45 Hz comes up an octave so it stays a note, not a rumble.
-      subHz = degreeToHz(degrees[0] - 14);
+      subHz = degreeToHz(degrees[0] - 14, undefined, h.rootShift);
       if (subHz < 45) subHz *= 2;
     }
-    const stabs = pattern.slice(half * STEPS, half * STEPS + STEPS);
-    const signature = `${stabs}|${hatDrops}|${extraKick ? 'k' : '-'}`;
+    const signature = `${stabBar}|${hatDrops}|${extraKick ? 'k' : '-'}`;
     const info: BarInfo = { bar, time: t, bpm, pattern: lastPattern, chord, signature };
     source.onBar?.(info);
   };
@@ -139,7 +154,7 @@ export const house: SourceFactory = (ctx: AudioContext): SequencedSource => {
     if (hatDrops[s] === 'x') hat(ctx, drumBus, t, { hpfHz: 6000, sec: 0.12, level: dbToGain(OPEN_HAT_DB) * rand(0.85, 1) });
     if (s === 4 || s === 12) clap(ctx, drumBus, t, dbToGain(CLAP_DB));
     if (s % 4 === 2) sub(t, subHz);
-    if (pattern[half * STEPS + s] === 'x') stab(t, stabHz);
+    if (stabBar[s] === 'x') stab(t, stabHz);
   };
 
   // Filter sweep lane: every 250 ms aim the cutoff at a point on a slow sine.

@@ -8,8 +8,9 @@ interface FamilyGroup {
 
 const FAMILY_GROUPS: FamilyGroup[] = [
   { label: 'Noise', sources: ['noise'] },
-  { label: 'Water', sources: ['rain', 'ocean', 'stream', 'underwater'] },
+  { label: 'Water', sources: ['rain', 'thunder', 'ocean', 'stream', 'underwater'] },
   { label: 'Air', sources: ['wind'] },
+  { label: 'Nature', sources: ['birds', 'crickets'] },   // shown as its own group; the tunnel still tints them as air
   { label: 'Fire', sources: ['campfire'] },
   { label: 'Places', sources: ['cafe', 'library', 'cabin', 'fan'] },
   { label: 'Music', sources: ['drone', 'lofi', 'plucks', 'synthwave', 'berlin', 'house', 'chillhop'] },
@@ -20,10 +21,13 @@ const SOURCE_LABEL: Record<SourceId, string> = {
   none: 'None',
   noise: 'Noise',
   rain: 'Rain',
+  thunder: 'Thunder',
   ocean: 'Ocean',
   stream: 'Stream',
   underwater: 'Underwater',
   wind: 'Wind',
+  birds: 'Birds',
+  crickets: 'Crickets',
   campfire: 'Campfire',
   cafe: 'Café',
   library: 'Library',

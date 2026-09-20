@@ -6,7 +6,7 @@ Live: https://infinite-voidsong.vercel.app/
 
 ## What it is
 
-Infinite Voidsong plays sound that is generated live in the browser with the Web Audio API. There are no recordings and no loops, so nothing repeats in a way you can hear and nothing is downloaded beyond the page itself. You mix up to four layers at once.
+Infinite Voidsong plays sound that is generated live in the browser with the Web Audio API. Six layers (stream, rain, rain with thunder, birds, crickets, wind) can play short CC0 field recordings, looped with random start points and cross-fades; they download from the same site the first time a layer is switched on, and a generated version plays if they cannot load. Nothing else is downloaded beyond the page itself. You mix up to four layers at once.
 
 - Noise: white to brown, with a tilt control.
 - Nature: rain, ocean, stream, underwater, wind, campfire with crickets.
