@@ -32,6 +32,7 @@ export class TunnelRenderer {
   private readonly reactive = new Reactive();
   private rafId: number | null = null;
   private lastFrame = 0;         // performance.now() of the previous frame
+  private forceStill = false;
   private time = 0;              // animated seconds (frozen when still / reduced motion)
   private travel = 0;            // ∫ speed dt
   private dpr = 1;
@@ -84,7 +85,14 @@ export class TunnelRenderer {
 
   /** Static frame: the time uniforms stop advancing until this is switched off. */
   setReducedMotion(on: boolean): void {
-    this.reactive.reducedMotion = on;
+    this.reactive.reducedMotion = on || this.forceStill;
+    this.requestFrame();
+  }
+
+  /** Phones: keep the tunnel a still picture (colour still follows the sound) whatever the motion setting says. */
+  setForceStill(on: boolean): void {
+    this.forceStill = on;
+    this.reactive.reducedMotion = on || this.reactive.reducedMotion;
     this.requestFrame();
   }
 
@@ -143,7 +151,7 @@ export class TunnelRenderer {
     this.reactive.setFamilies(normalizeWeights(families));
     this.reactive.setSources(sources);
     this.reactive.setPalette(next.preset ? PRESET_HUE[next.preset] : null);
-    this.reactive.reducedMotion = next.reducedMotion;
+    this.reactive.reducedMotion = next.reducedMotion || this.forceStill;
     this.requestFrame();
   }
 
