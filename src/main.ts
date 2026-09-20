@@ -7,6 +7,7 @@
 // a timed session — is already pushed over `bus` by the modules themselves;
 // this file only bridges the two things nothing else owns: engine.apply on
 // every state change, and playback ↔ visual motion.
+import './ui/debug';   // /?debug status panel; first, so it can wrap AudioContext and fetch
 import { bus } from './state/events';
 import { store } from './state/store';
 import { setTimerDeps } from './state/session';

@@ -178,18 +178,18 @@
 
     .browser-tint--top {
       top: -160px;
-      height: calc(160px + 28px);
+      height: calc(160px + 8px);
     }
 
     .browser-tint--bottom {
       bottom: -160px;
-      height: calc(160px + 56px);
+      height: calc(160px + 8px);
     }
 
     /* Keep the first and last lines of every page clear of the bands. */
     body {
-      padding-top: 28px;
-      padding-bottom: 56px;
+      padding-top: 8px;
+      padding-bottom: 8px;
     }
   }
 }
