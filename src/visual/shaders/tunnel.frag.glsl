@@ -25,7 +25,7 @@ uniform float uWidthAdd;     // extra line width from the beat, music family onl
 uniform float uDpr;          // device pixel ratio actually rendered at
 uniform float uDither;       // 0 smooth .. 1 fully dithered (default 0.8)
 uniform float uDitherScale;  // dither cell size in device pixels (default 2.0)
-uniform vec2  uLook;         // where the viewer is looking, -1..1 each axis (mouse or phone tilt), already smoothed
+uniform vec2  uLook;         // where the viewer is looking, -1..1 each axis (mouse), already smoothed
 
 out vec4 outColor;
 
@@ -45,7 +45,7 @@ const float SWAY_HZ_Y = 0.011;
 const float ROLL_DEG = 4.0;       // ±4° roll
 const float ROLL_HZ = 0.01;
 
-// Steering: mouse or phone tilt turns the view. The whole image shifts a little,
+// Steering: the mouse turns the view. The whole image shifts a little,
 // far rings shift more than near ones (parallax, like peering down a corridor),
 // and the view rolls slightly into the turn.
 const float LOOK_SHIFT = 0.06;    // whole-image shift at full deflection, in viewport heights

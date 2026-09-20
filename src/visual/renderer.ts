@@ -15,7 +15,7 @@ const HALF_RES_BELOW_PX = 600;   // mobile widths render at half resolution
 const MAX_DT = 0.05;             // clamp after a stall so nothing jumps
 const DITHER_SCALE = 2;          // dither cell size in device pixels (visible at dpr 1.5)
 const DITHER_DEFAULT = 0.8;      // 0 smooth .. 1 fully dithered
-const LOOK_RATE = 5;             // 1/s: how quickly the view follows the pointer or tilt
+const LOOK_RATE = 5;             // 1/s: how quickly the view follows the pointer
 
 const UNIFORMS = [
   'uRes', 'uTime', 'uTravel', 'uSpeed', 'uFamily', 'uLevels', 'uBeat',
@@ -99,7 +99,7 @@ export class TunnelRenderer {
     return this.gl !== null && this.program !== null;
   }
 
-  /** Steer the view, x and y in -1..1 (mouse position or phone tilt). Ignored under reduced motion. */
+  /** Steer the view, x and y in -1..1 (mouse position). Ignored under reduced motion. */
   setLook(x: number, y: number): void {
     if (this.reactive.reducedMotion) {
       this.lookTarget = [0, 0];
@@ -153,14 +153,22 @@ export class TunnelRenderer {
     else this.requestFrame();
   };
 
+  private lostTimer: ReturnType<typeof setTimeout> | undefined;
+
   private onContextLost = (e: Event): void => {
     e.preventDefault();
     this.stopLoop();
     this.program = null;
     this.vao = null;
+    // A phone can drop the WebGL context under memory pressure. If it does not come back
+    // soon, fall back to the dark ground instead of leaving whatever is behind the page.
+    clearTimeout(this.lostTimer);
+    this.lostTimer = setTimeout(() => { document.documentElement.dataset.gl = 'off'; }, 1500);
   };
 
   private onContextRestored = (): void => {
+    clearTimeout(this.lostTimer);
+    delete document.documentElement.dataset.gl;
     this.initGL();
     this.resize();
     this.requestFrame();
