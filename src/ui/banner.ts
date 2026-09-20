@@ -1,6 +1,8 @@
 // Infinite Voidsong — notice banner
 //
-// A single-line notice, dismissible, pinned to the bottom of the viewport.
+// A single-line notice, pinned to the bottom of the viewport. It is information
+// only (the site sets no cookies and asks for no consent), so it slides down out
+// of the way as soon as the visitor scrolls, or on "Got it".
 // The caller owns persistence: `onDismiss` fires once, when the visitor
 // dismisses the banner, and the caller decides where that state lives
 // (store, localStorage, …). This module has no dependency on the store.
@@ -25,7 +27,7 @@ export function mountBanner(root: HTMLElement, options: MountBannerOptions = {})
 
   const text = document.createElement('p');
   text.className = 'notice-banner__text';
-  text.textContent = 'This site keeps your settings in your browser and nothing else.';
+  text.textContent = 'This site keeps your settings and its own files in your browser and nothing else.';
 
   const privacyLink = document.createElement('a');
   privacyLink.href = '/privacy.html';
@@ -39,10 +41,24 @@ export function mountBanner(root: HTMLElement, options: MountBannerOptions = {})
   dismiss.type = 'button';
   dismiss.className = 'notice-banner__dismiss';
   dismiss.textContent = 'Got it';
-  dismiss.addEventListener('click', () => {
-    banner.hidden = true;
+  // Leave with a slide down; without motion (or if the transition never fires) just hide.
+  let leaving = false;
+  const leave = (): void => {
+    if (leaving) return;
+    leaving = true;
+    window.removeEventListener('scroll', onScroll);
     onDismiss?.();
-  });
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) { banner.hidden = true; return; }
+    banner.classList.add('notice-banner--leaving');
+    const done = (): void => { banner.hidden = true; };
+    banner.addEventListener('transitionend', done, { once: true });
+    setTimeout(done, 600);
+  };
+  const startY = window.scrollY;
+  const onScroll = (): void => { if (Math.abs(window.scrollY - startY) > 40) leave(); };
+  if (!initiallyDismissed) window.addEventListener('scroll', onScroll, { passive: true });
+  dismiss.addEventListener('click', leave);
 
   actions.appendChild(dismiss);
   banner.appendChild(text);
