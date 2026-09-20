@@ -53,6 +53,10 @@ export class AudioEngine {
   private generation = 0;                  // invalidates a pause()/end() that start() overtakes
 
   constructor(private readonly bus: Bus) {
+    // iOS Safari mutes Web Audio while the hardware silent switch is on, unless the page
+    // asks for the playback category (Audio Session API, iOS 16.4+).
+    const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+    if (session) { try { session.type = 'playback'; } catch { /* unsupported value */ } }
     this.ctx = new AudioContext({ latencyHint: 'playback' });
     this.graph = buildGraph(this.ctx);
     this.focusBoosts = [0, 1, 2, 3].map(() => focusBoostNode(this.ctx));
