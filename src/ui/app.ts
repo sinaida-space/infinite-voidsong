@@ -56,5 +56,16 @@ export function mountApp(root: HTMLElement): void {
   mountTimer(timerMount);
   mountTransport(transportMount);
 
+  // One column on a phone: Session, Player and Presets first, then Mixer and Master, so Play is
+  // on the first screen. Two columns on a wide screen: Mixer left, Session right (DOM order
+  // follows the visual order in both cases, so keyboard and screen reader order match).
+  const wide = matchMedia('(min-width: 960px)');
+  const order = (): void => {
+    if (wide.matches) layout.insertBefore(mixerCol, sideCol);
+    else layout.insertBefore(sideCol, mixerCol);
+  };
+  order();
+  wide.addEventListener('change', order);
+
   initShortcuts();
 }
