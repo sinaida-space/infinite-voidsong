@@ -15,7 +15,7 @@ Infinite Voidsong plays sound that is generated live in the browser with the Web
 - Tone: one steady tone with adjustable pitch.
 - Focus Boost: a fast pulse (12 to 20 times a second) on the music layer, with depth and rate controls.
 
-Behind the interface is a WebGL2 tunnel that reacts to the sound. Colour follows the selected sound, and the view can be steered with the mouse or, on a phone, by tilting the device.
+Behind the interface is a WebGL2 tunnel that reacts to the sound. Colour follows the selected sound, and the view can be steered with the mouse. On a phone the view is fixed.
 
 ## Why it exists
 
