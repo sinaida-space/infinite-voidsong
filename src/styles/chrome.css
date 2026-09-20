@@ -20,6 +20,21 @@
   font-size: 0.85rem;
 }
 
+.notice-banner {
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.notice-banner--leaving {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-banner {
+    transition: none;
+  }
+}
+
 .notice-banner[hidden] {
   display: none;
 }
