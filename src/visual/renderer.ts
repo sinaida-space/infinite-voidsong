@@ -268,39 +268,53 @@ export class TunnelRenderer {
     }
   };
 
-  private draw(dt: number): void {
+  /** A non-finite uniform turns the whole picture into flat grey (min(NaN, MAX) in the shader), so zero it and say so once. */
+  private readonly badUniforms = new Set<string>();
+  private fin(name: string, v: number): number {
+    if (Number.isFinite(v)) return v;
+    if (!this.badUniforms.has(name)) {
+      this.badUniforms.add(name);
+      console.warn('[voidsong] non-finite uniform', name);
+    }
+    return 0;
+  }
+
+  private draw(rawDt: number): void {
     const gl = this.gl;
     if (!gl || !this.program || !this.vao) return;
+    const dt = this.fin('dt', rawDt);
     const p = this.reactive.update(dt);
+    const f = (name: string, v: number): number => this.fin(name, v);
 
     // Ease the look toward its target so the view glides instead of snapping.
     const k = 1 - Math.exp(-LOOK_RATE * dt);
     this.look[0] += (this.lookTarget[0] - this.look[0]) * k;
     this.look[1] += (this.lookTarget[1] - this.look[1]) * k;
+    if (!Number.isFinite(this.look[0]) || !Number.isFinite(this.look[1])) { this.look[0] = 0; this.look[1] = 0; }
 
     // Time advances only while the picture is allowed to move.
     const moving = !this.reactive.reducedMotion && this.reactive.motion !== 'still';
     if (moving) {
       this.time += dt;
-      this.travel += p.speed * dt;
+      this.travel += f('speed', p.speed) * dt;
     }
 
     const L = this.loc;
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     gl.useProgram(this.program);
     gl.uniform2f(L.uRes!, this.canvas.width, this.canvas.height);
-    gl.uniform1f(L.uTime!, this.time);
-    gl.uniform1f(L.uTravel!, this.travel);
-    gl.uniform1f(L.uSpeed!, p.speed);
-    gl.uniform1fv(L.uFamily!, p.weights);
-    gl.uniform4f(L.uLevels!, p.levels[0], p.levels[1], p.levels[2], p.levels[3]);
-    gl.uniform1f(L.uBeat!, p.beat);
-    gl.uniform3f(L.uLineColor!, p.hue[0], p.hue[1], p.hue[2]);
-    gl.uniform3f(L.uLineColorFar!, p.hueFar[0], p.hueFar[1], p.hueFar[2]);
-    gl.uniform2f(L.uLobe!, p.lobeGain, p.lobePhase);
-    gl.uniform1f(L.uLineBright!, p.lineBright);
-    gl.uniform1f(L.uGrain!, p.grain);
-    gl.uniform1f(L.uWidthAdd!, p.widthAdd);
+    gl.uniform1f(L.uTime!, f('time', this.time));
+    gl.uniform1f(L.uTravel!, f('travel', this.travel));
+    gl.uniform1f(L.uSpeed!, f('speed', p.speed));
+    gl.uniform1fv(L.uFamily!, Float32Array.from(p.weights, (w, i) => f('family' + i, w)));
+    gl.uniform4f(L.uLevels!, f('rms', p.levels[0]), f('low', p.levels[1]), f('mid', p.levels[2]), f('high', p.levels[3]));
+    gl.uniform1f(L.uBeat!, f('beat', p.beat));
+    gl.uniform3f(L.uLineColor!, f('hueR', p.hue[0]), f('hueG', p.hue[1]), f('hueB', p.hue[2]));
+    gl.uniform3f(L.uLineColorFar!, f('hueFarR', p.hueFar[0]), f('hueFarG', p.hueFar[1]), f('hueFarB', p.hueFar[2]));
+    gl.uniform2f(L.uLobe!, f('lobeGain', p.lobeGain), f('lobePhase', p.lobePhase));
+    gl.uniform1f(L.uLineBright!, f('lineBright', p.lineBright));
+    gl.uniform1f(L.uGrain!, f('grain', p.grain));
+    gl.uniform1f(L.uWidthAdd!, f('widthAdd', p.widthAdd));
     gl.uniform1f(L.uDpr!, this.dpr);
     gl.uniform1f(L.uDither!, this.dither);
     gl.uniform1f(L.uDitherScale!, DITHER_SCALE);
