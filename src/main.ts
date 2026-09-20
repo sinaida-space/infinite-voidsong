@@ -35,6 +35,8 @@ function el(id: string): HTMLElement {
 
 const renderer = new TunnelRenderer(el('tunnel') as HTMLCanvasElement, bus);
 attachLook(renderer); // mouse steers on desktop; phones keep a fixed view
+// Phones (touch, no hover) get a still tunnel: the animated frames turned grey on real iPhones.
+renderer.setForceStill(matchMedia('(hover: none) and (pointer: coarse)').matches);
 if (!renderer.available) document.documentElement.dataset.gl = 'off'; // dark ground when there is no tunnel to paint over the red one
 
 // --- UI mounts -----------------------------------------------------------------

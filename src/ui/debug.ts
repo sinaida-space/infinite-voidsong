@@ -60,7 +60,15 @@ if (on) {
     c.addEventListener('webglcontextrestored', () => add('GL context restored'));
     setInterval(() => {
       const gl = c.getContext('webgl2') as WebGL2RenderingContext | null;
-      set('webgl', gl ? (gl.isContextLost() ? 'LOST' : 'ok') + ` ${c.width}x${c.height} data-gl=${document.documentElement.dataset.gl ?? '-'}` : 'none');
+      let px = '';
+      try {
+        const t = document.createElement('canvas'); t.width = 4; t.height = 4;
+        const x = t.getContext('2d')!; x.drawImage(c, 0, 0, 4, 4);
+        const d = x.getImageData(0, 0, 4, 4).data; let r = 0, g = 0, b = 0;
+        for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+        px = ` px=${Math.round(r / 16)},${Math.round(g / 16)},${Math.round(b / 16)}`;
+      } catch { px = ' px=?'; }
+      set('webgl', gl ? (gl.isContextLost() ? 'LOST' : 'ok') + ` ${c.width}x${c.height} data-gl=${document.documentElement.dataset.gl ?? '-'}${px}` : 'none');
     }, 1000);
   });
 }
