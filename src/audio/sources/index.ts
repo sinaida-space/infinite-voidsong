@@ -6,6 +6,7 @@ import type { SourceFactory } from '../source';
 import { berlin, chillhop, drone, house, lofi, plucks, synthwave, tone } from '../music/register';
 import { cabin } from './cabin';
 import { cafe } from './cafe';
+import { colour } from './colours';
 import { campfire } from './campfire';
 import { fan } from './fan';
 import { library } from './library';
@@ -33,6 +34,7 @@ const crickets = sampleLayer('crickets', 'crickets.opus', cricketsSynth, { trimD
 
 export const SOURCES: Record<Exclude<SourceId, 'none'>, SourceFactory> = {
   noise,
+  white: colour('white'), pink: colour('pink'), brown: colour('brown'),
   rain, thunder, ocean, stream, underwater,
   wind, birds, crickets,
   campfire,

@@ -35,6 +35,16 @@ function readReducedMotion(): boolean {
   return false;
 }
 
+// The mixer used to offer one noise layer with a white ↔ brown tilt. Saved mixes
+// and old links still carry it: it becomes the nearest fixed colour.
+function migrateNoise(layers: AppState['layers']): AppState['layers'] {
+  return layers.map((l) => {
+    if (l.source !== 'noise') return l;
+    const tilt = l.params['noise.tilt'] ?? 0.5;
+    return { ...l, source: tilt < 0.33 ? 'white' : tilt < 0.66 ? 'pink' : 'brown', params: {} };
+  }) as AppState['layers'];
+}
+
 function buildInitialState(): AppState {
   let state = defaultState();
 
@@ -63,6 +73,8 @@ function buildInitialState(): AppState {
       harmony: isHarmonyMode(fromHash.harmony) ? fromHash.harmony : 'off',
     };
   }
+
+  state.layers = migrateNoise(state.layers);
 
   // reducedMotion always mirrors matchMedia on load, never persisted
   state.reducedMotion = readReducedMotion();

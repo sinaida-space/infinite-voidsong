@@ -1,4 +1,4 @@
-import type { AppState, LayerState, SessionState, SourceId, TaskPreset, TimerPreset } from './types';
+import { FAMILY_OF, type AppState, type LayerState, type SessionState, type SourceId, type TaskPreset, type TimerPreset } from './types';
 import { store } from './store';
 
 export interface PresetContext {
@@ -26,7 +26,7 @@ const none = (): PresetLayerDef => ({ source: 'none', volume: 0.5 });
 export const PRESET_TABLE: Record<TaskPreset, PresetDef> = {
   'deep-focus': {
     layers: [
-      { source: 'noise', volume: 0.55, params: { 'noise.tilt': 0.6 } },
+      { source: 'pink', volume: 0.55 },
       { source: 'rain', volume: 0.35 },
       { source: 'drone', volume: 0.3 },
       none(),
@@ -37,7 +37,7 @@ export const PRESET_TABLE: Record<TaskPreset, PresetDef> = {
   },
   'reading-writing': {
     layers: [
-      { source: 'noise', volume: 0.4, params: { 'noise.tilt': 0.8 } },
+      { source: 'brown', volume: 0.4 },
       { source: 'stream', volume: 0.3 },
       none(),
       none(),
@@ -83,7 +83,7 @@ export const PRESET_TABLE: Record<TaskPreset, PresetDef> = {
     layers: [
       { source: 'rain', volume: 0.4 },
       { source: 'underwater', volume: 0.35 },
-      { source: 'noise', volume: 0.25, params: { 'noise.tilt': 1 } },
+      { source: 'brown', volume: 0.25 },
       none(),
     ],
     master: 0.2,
@@ -109,10 +109,10 @@ export function applyPreset(id: TaskPreset, ctx?: PresetContext): void {
 
   if (ctx?.noise === 'office') {
     layers[0] = { ...layers[0], volume: clamp01(layers[0].volume + 0.15) };
-    if (!layers.some((l) => l.source === 'noise')) {
+    if (!layers.some((l) => l.source !== 'none' && FAMILY_OF[l.source] === 'noise')) {
       const emptyIdx = layers.findIndex((l) => l.source === 'none');
       if (emptyIdx !== -1) {
-        layers[emptyIdx] = { source: 'noise', volume: 0.3, muted: false, params: { 'noise.tilt': 0.5 } };
+        layers[emptyIdx] = { source: 'pink', volume: 0.3, muted: false, params: {} };
       }
     }
   } else if (ctx?.noise === 'quiet') {
