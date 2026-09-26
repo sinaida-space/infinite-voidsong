@@ -10,7 +10,8 @@ Infinite Voidsong plays sound that is generated live in the browser with the Web
 
 - Noise: white to brown, with a tilt control.
 - Nature: rain, ocean, stream, underwater, wind, campfire with crickets.
-- Places: café, library, train cabin, fan hum. The murmur is built to be unintelligible.
+- Places: café, library, train cabin. The murmur is built to be unintelligible.
+- Machines: fan hum, cassette tape hiss, shortwave radio static (no voices).
 - Music: generative drone, lo-fi, plucks, synthwave, Berlin-school sequencer, house and chillhop. All instrumental, steady, with no drops.
 - Tone: one steady tone with adjustable pitch.
 - Focus Boost: a fast pulse (12 to 20 times a second) on the music layer, with depth and rate controls.

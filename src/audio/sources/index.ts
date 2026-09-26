@@ -11,11 +11,13 @@ import { fan } from './fan';
 import { library } from './library';
 import { noise } from './noise';
 import { ocean } from './ocean';
+import { radio } from './radio';
 import { birds as birdsSynth } from './birds';
 import { crickets as cricketsSynth } from './crickets';
 import { rain as rainSynth } from './rain';
 import { sampleLayer } from './sample';
 import { stream as streamSynth } from './stream';
+import { tape } from './tape';
 import { underwater } from './underwater';
 import { wind as windSynth } from './wind';
 
@@ -35,6 +37,7 @@ export const SOURCES: Record<Exclude<SourceId, 'none'>, SourceFactory> = {
   wind, birds, crickets,
   campfire,
   cafe, library, cabin, fan,
+  tape, radio,
   drone, lofi, plucks,
   synthwave, berlin, house, chillhop,
   tone,
