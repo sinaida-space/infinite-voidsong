@@ -12,7 +12,8 @@ const FAMILY_GROUPS: FamilyGroup[] = [
   { label: 'Air', sources: ['wind'] },
   { label: 'Nature', sources: ['birds', 'crickets'] },   // shown as its own group; the tunnel still tints them as air
   { label: 'Fire', sources: ['campfire'] },
-  { label: 'Places', sources: ['cafe', 'library', 'cabin', 'fan'] },
+  { label: 'Places', sources: ['cafe', 'library', 'cabin'] },
+  { label: 'Machines', sources: ['fan', 'tape', 'radio'] },
   { label: 'Music', sources: ['drone', 'lofi', 'plucks', 'synthwave', 'berlin', 'house', 'chillhop'] },
   { label: 'Tone', sources: ['tone'] },
 ];
@@ -33,6 +34,8 @@ const SOURCE_LABEL: Record<SourceId, string> = {
   library: 'Library',
   cabin: 'Cabin',
   fan: 'Fan',
+  tape: 'Tape hiss',
+  radio: 'Radio static',
   drone: 'Drone',
   lofi: 'Lo-fi',
   plucks: 'Plucks',

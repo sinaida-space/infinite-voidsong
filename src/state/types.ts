@@ -5,12 +5,13 @@ export type SourceId =
   | 'wind' | 'birds' | 'crickets'                 // family air
   | 'campfire'                                     // family fire
   | 'cafe' | 'library' | 'cabin' | 'fan'           // family place
+  | 'tape' | 'radio'                              // family place (machines)
   | 'drone' | 'lofi' | 'plucks'                    // family music
   | 'synthwave' | 'berlin' | 'house' | 'chillhop'  // family music (electronic)
   | 'tone';                                        // family tone
 
 export type Family = 'noise' | 'water' | 'air' | 'fire' | 'place' | 'music' | 'tone';
-export const FAMILY_OF: Record<Exclude<SourceId,'none'>, Family> = { noise:'noise', rain:'water', thunder:'water', ocean:'water', stream:'water', underwater:'water', wind:'air', birds:'air', crickets:'air', campfire:'fire', cafe:'place', library:'place', cabin:'place', fan:'place', drone:'music', lofi:'music', plucks:'music', synthwave:'music', berlin:'music', house:'music', chillhop:'music', tone:'tone' };
+export const FAMILY_OF: Record<Exclude<SourceId,'none'>, Family> = { noise:'noise', rain:'water', thunder:'water', ocean:'water', stream:'water', underwater:'water', wind:'air', birds:'air', crickets:'air', campfire:'fire', cafe:'place', library:'place', cabin:'place', fan:'place', tape:'place', radio:'place', drone:'music', lofi:'music', plucks:'music', synthwave:'music', berlin:'music', house:'music', chillhop:'music', tone:'tone' };
 
 export interface LayerState {
   source: SourceId;                 // 'none' = empty slot
