@@ -1,6 +1,7 @@
 export type SourceId =
   | 'none'
-  | 'noise'                                        // family noise
+  | 'white' | 'pink' | 'brown'                    // family noise
+  | 'noise'                                        // family noise: old white ↔ brown blend, migrated on load
   | 'rain' | 'thunder' | 'ocean' | 'stream' | 'underwater' // family water
   | 'wind' | 'birds' | 'crickets'                 // family air
   | 'campfire'                                     // family fire
@@ -11,7 +12,7 @@ export type SourceId =
   | 'tone';                                        // family tone
 
 export type Family = 'noise' | 'water' | 'air' | 'fire' | 'place' | 'music' | 'tone';
-export const FAMILY_OF: Record<Exclude<SourceId,'none'>, Family> = { noise:'noise', rain:'water', thunder:'water', ocean:'water', stream:'water', underwater:'water', wind:'air', birds:'air', crickets:'air', campfire:'fire', cafe:'place', library:'place', cabin:'place', fan:'place', tape:'place', radio:'place', drone:'music', lofi:'music', plucks:'music', synthwave:'music', berlin:'music', house:'music', chillhop:'music', tone:'tone' };
+export const FAMILY_OF: Record<Exclude<SourceId,'none'>, Family> = { noise:'noise', white:'noise', pink:'noise', brown:'noise', rain:'water', thunder:'water', ocean:'water', stream:'water', underwater:'water', wind:'air', birds:'air', crickets:'air', campfire:'fire', cafe:'place', library:'place', cabin:'place', fan:'place', tape:'place', radio:'place', drone:'music', lofi:'music', plucks:'music', synthwave:'music', berlin:'music', house:'music', chillhop:'music', tone:'tone' };
 
 export interface LayerState {
   source: SourceId;                 // 'none' = empty slot
