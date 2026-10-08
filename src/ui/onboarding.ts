@@ -325,6 +325,11 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
     title.className = 'term__title glitch';
     title.dataset.text = 'INFINITE VOIDSONG';
     title.textContent = 'INFINITE VOIDSONG';
+    // The same hidden game as the wordmark in the app (loaded only when asked for).
+    title.style.cursor = 'pointer';
+    title.addEventListener('click', () => {
+      void import('./pacman').then((m) => m.openPacman());
+    });
     body.insertBefore(title, actions);
 
     const intro = document.createElement('p');
@@ -503,6 +508,14 @@ export function mountOnboarding(root?: HTMLElement, options: OnboardingOptions =
 
   async function runIntro(): Promise<void> {
     renderActions(null);
+
+    // Coming back with the browser's Back button (e.g. from Privacy, Terms or Research):
+    // skip the boot log and land straight on the welcome.
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    if (nav?.type === 'back_forward') {
+      showDialog();
+      return;
+    }
 
     for (const line of BOOT_LINES) {
       await typeLine(bootLog, line);
