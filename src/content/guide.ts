@@ -3,7 +3,7 @@
 // Single source of truth for the GUIDE.TXT copy, rendered by both guide.html
 // (a standalone page) and src/ui/guide.ts (mountGuide, the in-app window).
 // Evidence-honest by design: claims stay modest and hedged, never overstated,
-// and no wording here reaches for medical language. Source: audio-reqs.md §5–§6.
+// and no wording here reaches for medical language.
 
 export interface GuideTable {
   head: string[];

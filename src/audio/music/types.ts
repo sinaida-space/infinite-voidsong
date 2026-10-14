@@ -1,4 +1,4 @@
-// The engine contract (docs/PLAN.md §4, "Engine API") lives in ../source;
+// The engine contract ("Engine API") lives in ../source;
 // this module re-exports it so there is exactly one definition, and keeps
 // the music-side additions (LofiSource, BarInfo) that ../source has no
 // reason to know about.

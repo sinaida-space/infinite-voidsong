@@ -2,3 +2,6 @@ node_modules
 dist
 .claude/
 sounds-raw/
+docs/PLAN.md
+audio-reqs.md
+docs/*.pdf

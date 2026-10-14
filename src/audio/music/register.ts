@@ -1,6 +1,6 @@
 // Registry consumed by src/audio/sources/index.ts (task 3): the music-side
 // sources (four from issue #4, four electronic ones from issue #12) and the
-// Focus Boost node. Contract: docs/PLAN.md §4 / issue #4.
+// Focus Boost node. Contract: issue #4.
 import type { SourceFactory } from './types';
 import { drone } from '../sources/drone';
 import { lofi } from '../sources/lofi';
