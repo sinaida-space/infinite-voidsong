@@ -16,7 +16,7 @@ is static, and every setting lives in your own browser.
 
 ## Why it exists
 
-Sinaida built Infinite Voidsong for her own working day. She wanted one place
+Sinaida made Infinite Voidsong for her own working day. She wanted one place
 to hold her focus and to keep track of her rest and recharge time.
 
 Ballet taught her the second part the hard way: rest is where growth happens.
