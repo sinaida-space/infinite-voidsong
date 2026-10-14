@@ -2,8 +2,6 @@
 
 **Try it live: [infinite-voidsong.vercel.app](https://infinite-voidsong.vercel.app/)**
 
-> Production mirror. Development and issue tracking run in a private development environment; releases are published here.
-
 
 
 <img width="3072" height="384" alt="image" src="https://github.com/user-attachments/assets/41f61e04-e350-43bd-91c7-79927264cf92" />
@@ -78,3 +76,7 @@ Sinaida Krivchenko is a new media artist based in Prague. She works with
 interactive projections, TouchDesigner, GLSL shaders, web applications, and generative art. Portfolio and contact: [sinaida.eu](https://sinaida.eu).
 
 #NewMedia #NewMediaArt #GenerativeArt #CreativeCoding #WebAudio #FocusTool #FLINTA #flintaartist
+
+This repo is a production mirror.
+
+Development and issue tracking run in a private development environment; releases are published here.
