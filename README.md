@@ -66,6 +66,19 @@ npm run dev
 4. Security headers (CSP and others) are set by `vercel.json`, so no extra configuration is needed.
 5. `404.html` in the build output is served for unknown routes automatically.
 
+## Support & handoff
+
+- Status: active (maintained by Sinaida Krivchenko)
+- Run locally: `npm ci`, then `npm run dev` (http://localhost:5173); the Vercel setup uses Node 20
+- Offline / fallback: installable as an offline web app; the service worker in public/sw.js caches the production build
+- Requirements: a browser with the Web Audio API and WebGL
+- Handing over: CHANGELOG.md documents releases and audio-reqs.md holds the sound specification; licence terms are in LICENSE (Apache 2.0)
+- Contact: https://sinaida.eu/collaborate
+
+## How this was made
+
+Sinaida comes up with the idea, the concept and the way to make it into a system. The making uses whatever the piece needs, from drawing by hand to AI-native production. She cares about integrity and a smooth experience, so every work adjusts to its environment, and each project ships with a rider, a contingency plan and her support.
+
 ## License
 
 Apache License 2.0, see [LICENSE](./LICENSE).
