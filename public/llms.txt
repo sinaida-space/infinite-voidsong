@@ -53,7 +53,7 @@ Vite and TypeScript with no runtime dependencies. Web Audio API for all sound, W
 
 ## About the author
 
-Sinaida Krivchenko is a Prague-based new media artist building living visual systems for stages and physical spaces: real-time TouchDesigner and GLSL work, interactive projections and audio-reactive visuals for live performance. She trained as a biomedical engineer (MSc, Bauman Moscow State Technical University), with earlier careers in IT leadership at General Electric and in creative direction for cultural institutions in Amsterdam. She works with performing-arts organisations, musicians, festivals and cultural institutions.
+Sinaida Krivchenko is a Prague-based new media artist building living visual systems for stages and physical spaces: real-time TouchDesigner and GLSL work, interactive projections and audio-reactive visuals for live performance. She trained as a biomedical engineer (MSc, Bauman Moscow State Technical University, with research in biometrics and cancer screening), then went through General Electric’s IT Leadership Program and six years of independent project work in Amsterdam’s cultural scene. She works with performing-arts organisations, musicians, festivals and cultural institutions.
 
 - Website and portfolio: https://sinaida.eu/
 - Work with her: https://sinaida.eu/collaborate

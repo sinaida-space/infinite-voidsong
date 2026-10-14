@@ -1,4 +1,4 @@
-# Infinite Voidsong — Creative Director plan
+# Infinite Voidsong — plan
 
 ## 1. Creative synthesis
 
