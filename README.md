@@ -72,7 +72,7 @@ npm run dev
 - Run locally: `npm ci`, then `npm run dev` (http://localhost:5173); the Vercel setup uses Node 20
 - Offline / fallback: installable as an offline web app; the service worker in public/sw.js caches the production build
 - Requirements: a browser with the Web Audio API and WebGL
-- Handing over: CHANGELOG.md documents releases and audio-reqs.md holds the sound specification; licence terms are in LICENSE (Apache 2.0)
+- Handing over: CHANGELOG.md documents releases and audio-reqs.md holds the sound specification; licence terms are in LICENSE (Apache 2.0, code), LICENSE-CONTENT (CC BY-NC-ND 4.0, everything else) and THIRD-PARTY.md
 - Contact: https://sinaida.eu/collaborate
 
 ## How this was made
@@ -81,7 +81,7 @@ Sinaida comes up with the idea, the concept and the way to make it into a system
 
 ## License
 
-Apache License 2.0, see [LICENSE](./LICENSE).
+Code: Apache License 2.0, see [LICENSE](./LICENSE). Concept, design, sound design and text: CC BY-NC-ND 4.0, see [LICENSE-CONTENT](./LICENSE-CONTENT). Field recordings by Joseph SARDIN (BigSoundBank, CC0) and the Geist Pixel typeface (SIL OFL 1.1): see [THIRD-PARTY.md](./THIRD-PARTY.md).
 
 ## About the author
 
