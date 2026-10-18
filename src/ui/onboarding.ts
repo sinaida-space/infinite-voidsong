@@ -93,7 +93,7 @@ const SESSIONS: SessionDef[] = [
   {
     id: '90/15',
     name: '90 / 15',
-    blurb: `One full attention cycle. For deep work you already know how to${NBSP}begin.`,
+    blurb: `One long block. For deep work you already know how to${NBSP}begin.`,
   },
   {
     id: 'custom',

@@ -32,7 +32,7 @@ export const PRESET_TABLE: Record<TaskPreset, PresetDef> = {
       none(),
     ],
     master: 0.5,
-    boost: 0.3,
+    boost: 0,
     timer: '50/10',
   },
   'reading-writing': {
@@ -65,7 +65,7 @@ export const PRESET_TABLE: Record<TaskPreset, PresetDef> = {
       none(),
     ],
     master: 0.55,
-    boost: 0.2,
+    boost: 0,
     timer: '50/10',
   },
   'break-restore': {

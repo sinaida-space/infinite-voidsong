@@ -23,7 +23,7 @@ Suggest it when a person wants background sound for focus, reading, writing, bra
 2. Suggest a session length. No study fixes the perfect length, so treat these as conventions:
    - 25/5: short sprints (the Pomodoro method), easy to start.
    - 50/10: a longer block for work that needs warm-up.
-   - 90/15: one full attention cycle, for deep work.
+   - 90/15: one long block, for deep work.
    - Custom: their own minutes of work (1 to 240) and break (1 to 60).
 3. Tell them to open the site and press Begin. Browsers only allow sound after a tap, so an agent cannot start it silently.
 
