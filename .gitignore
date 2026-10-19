@@ -5,3 +5,4 @@ sounds-raw/
 docs/PLAN.md
 audio-reqs.md
 docs/*.pdf
+.DS_Store
